@@ -1,26 +1,47 @@
-# KILL THE FLY: Neural Hunter (3D FPS Web Game)
+# 🪰 KILL THE FLY: Neural Hunter
 
-A high-performance 3D First-Person Shooter web game powered by **Three.js** and a neuro-computational model of the **Drosophila melanogaster (Fruit Fly)** escape and flight connectome.
+<p align="center">
+  <a href="https://cbagh0819-ctrl.github.io/kill-the-fly-neural-hunter/landing.html#magic">
+    <img src="https://img.shields.io/badge/🎮_PLAY_LIVE_DEMO-Kill_The_Fly-00C853?style=for-the-badge&logo=github&logoColor=white" alt="Play KILL THE FLY Live Demo" />
+  </a>
+</p>
+
+<p align="center">
+  <strong>A High-Performance 3D First-Person Shooter Web Game</strong>
+  <br />
+  Powered by Three.js and a neuro-computational model inspired by the <em>Drosophila melanogaster</em> escape and flight connectome.
+  <br /><br />
+  🎮 <strong>Play Now:</strong>
+  <a href="https://cbagh0819-ctrl.github.io/kill-the-fly-neural-hunter/landing.html#magic">Launch KILL THE FLY: Neural Hunter</a>
+  <br />
+  🌐 Runs in your browser — no installation required for the live demo.
+</p>
 
 ---
 
 ## 🎮 How to Play
 
-### Quick Launch
-- **Double click**: `run_game.bat` (or run `python run_game.py` in your terminal).
-- The game will automatically launch at `http://localhost:8000/index.html`.
+### 🚀 Quick Launch
 
-### Controls
+**Play online:** [KILL THE FLY: Neural Hunter — Live Demo](https://cbagh0819-ctrl.github.io/kill-the-fly-neural-hunter/landing.html#magic)
+
+**Run locally:**
+- Double-click `run_game.bat`, or
+- Run `python run_game.py` in your terminal.
+- The game will launch at `http://localhost:8000/index.html`.
+
+### 🕹️ Controls
+
 | Key / Input | Action |
 | :--- | :--- |
-| **Mouse** | Look around & Aim crosshair |
-| **Left Click** | Swing / Fire weapon |
-| **Right Click** | Aim Down Sights (ADS zoom) |
-| **W, A, S, D** | Move locomotion |
+| **Mouse** | Look around and aim the crosshair |
+| **Left Click** | Swing or fire weapon |
+| **Right Click** | Aim Down Sights (ADS) / zoom |
+| **W, A, S, D** | Move |
 | **Shift** | Sprint |
 | **Space** | Jump |
-| **T** | Reload firearm clip |
-| **1–8** | Switch to an unlocked weapon (all weapons in Endless Mode) |
+| **T** | Reload firearm |
+| **1–8** | Switch to an unlocked weapon; all weapons are available in Endless Mode |
 | **Z, X, C, V, B** | Cast magic spells (unlocked from Level 2) |
 | **M** | Toggle 3D spatial audio mute |
 
@@ -28,40 +49,56 @@ A high-performance 3D First-Person Shooter web game powered by **Three.js** and 
 
 ## 🔬 Biological Fly Brain Model (Connectome Circuit)
 
-Unlike typical game bots that dodge using pseudo-random timers, the flies in **KILL THE FLY** run a biophysical simulation of the fruit fly escape circuit:
+Unlike typical game bots that dodge using pseudo-random timers, the flies in **KILL THE FLY** use a biologically inspired computational model of the fruit fly's escape circuit.
 
-1. **LC4 & LPLC2 (Lobula Columnar Neurons)**:
-   - Detects visual looming stimuli (angular size $\theta$ and angular expansion rate $\frac{d\theta}{dt}$).
-   - Computes time-to-collision and relative approach velocity.
-   - The fly compound eye covers ~330°, with a blind zone directly behind/below the abdomen.
+### 1. LC4 & LPLC2 — Visual Looming Detection
 
-2. **Central Complex (EB, FB, PB)**:
-   - Contains a ring attractor compass maintaining head direction.
-   - Generates spontaneous exploratory flight paths and random saccadic turns every 0.8–2.0 seconds.
-   - Optic flow (HS/VS tangential cells) steers the fly around forest tree obstacles.
+- Detects approaching visual stimuli using angular size \(\theta\) and angular expansion rate \(d\theta/dt\).
+- Estimates time-to-collision and relative approach velocity.
+- Models a wide field of view inspired by the fruit fly's compound eyes, with a blind zone behind and below the abdomen.
 
-3. **Giant Fiber (GF) Descending Command Neuron**:
-   - Modeled with **Leaky Integrate-and-Fire** membrane dynamics:
-     $$\tau_m \frac{dV_{GF}}{dt} = -(V_{GF} - V_{rest}) + I_{synaptic}(LC4, LPLC2) + noise$$
-   - Resting potential: $-70.0\text{ mV}$.
-   - Spike threshold: $-48.0\text{ mV}$ (dynamic per level).
-   - When membrane potential crosses threshold, an **Action Potential** spikes to $+30.0\text{ mV}$!
+### 2. Central Complex (EB, FB, PB)
 
-4. **Thoracic Ganglion Motor Outputs**:
-   - **TTM (Tergotrochanteral Motor Neuron)**: Fires first (<10ms), driving an explosive leg jump launch away from the threat vector.
-   - **DLM (Dorsal Longitudinal Muscles)**: Engages full-power wing depressors, elevating wing beat frequency from ~185 Hz to >230 Hz and executing an evasive banking barrel roll.
+- Uses a ring-attractor-inspired compass to maintain directional orientation.
+- Generates exploratory flight paths and spontaneous saccadic turns approximately every 0.8–2.0 seconds.
+- Uses optic-flow-inspired steering to navigate around forest obstacles.
+
+### 3. Giant Fiber (GF) Descending Command Neuron
+
+The escape response is modeled using Leaky Integrate-and-Fire membrane dynamics:
+
+\[
+\tau_m \frac{dV_{GF}}{dt}
+=
+-(V_{GF}-V_{rest}) + I_{synaptic}(LC4,LPLC2) + noise
+\]
+
+- Resting potential: **−70.0 mV**
+- Spike threshold: **−48.0 mV** (adjustable by level)
+- Simulated action potential peak: **+30.0 mV**
+
+When the membrane potential crosses its threshold, the model triggers an escape response.
+
+### 4. Thoracic Ganglion Motor Outputs
+
+- **TTM (Tergotrochanteral Motor Neuron):** Models a rapid leg-powered jump away from a threat.
+- **DLM (Dorsal Longitudinal Muscles):** Models wing-powered evasive maneuvers, including rapid acceleration and banking turns.
+
+*Note: These are game simulation mechanics inspired by biological concepts, not a validated, full biological connectome simulation.*
 
 ---
 
 ## 📊 Real-Time Fly Brain HUD, Radar & Oscilloscope
 
-The telemetry interface provides real-time combat guidance:
-- **🪰 Fly Proximity Sonar / Radar Tracker**: Centered below the crosshair, shows live distance and directional arrows (`↑ AHEAD`, `↗ RIGHT-FRONT`, `← LEFT`, `↓ BEHIND`). Pulses green when a fly enters swatting reach ($\le 3.8\text{m}$).
-- **Connectome Diagram**: Visualizes active signal flow (Eyes $\rightarrow$ LC4 $\rightarrow$ Central Complex $\rightarrow$ Giant Fiber $\rightarrow$ TTM/DLM).
-- **Membrane Oscilloscope**: Rolling live voltage trace showing real-time action potentials.
-- **LC4 Looming Rate**: Retinal expansion percentage.
-- **Flight Frequency**: Wing beat frequency in Hz.
-- **TTM Status**: Armed vs. Jump reflex fired.
+The telemetry interface provides real-time combat feedback.
+
+- **🪰 Fly Proximity Radar:** Tracks nearby flies and displays directional indicators such as `↑ AHEAD`, `↗ RIGHT-FRONT`, `← LEFT`, and `↓ BEHIND`.
+- **Swatting Range Indicator:** Pulses green when a fly enters the modeled swatting range of **3.8 m or less**.
+- **Connectome Diagram:** Visualizes signal flow from the eyes through LC4, the central complex, and giant-fiber-inspired escape outputs.
+- **Membrane Oscilloscope:** Displays a rolling voltage trace and simulated action potentials.
+- **LC4 Looming Rate:** Displays the modeled retinal expansion rate.
+- **Flight Frequency:** Displays simulated wing-beat frequency in Hz.
+- **TTM Status:** Shows whether the jump reflex is armed or has fired.
 
 ---
 
@@ -69,38 +106,96 @@ The telemetry interface provides real-time combat guidance:
 
 | Level | Level Name | Weapon | Type | Fly Speed | Chaos / Reflex | Goal |
 | :---: | :--- | :--- | :--- | :---: | :---: | :---: |
-| **1** | Woodland Canopy | **Badminton Racket** | Melee Swat | 7.5 m/s | 1.0 ($-46\text{mV}$) | 3 |
-| **2** | Pine Thicket | **Tactical Handgun** | Semi-Auto Pistol | 9.0 m/s | 1.3 ($-49\text{mV}$) | 5 |
-| **3** | Bramble Hollow | **MAC-10 Submachine Gun** | 800 RPM SMG | 10.5 m/s | 1.6 ($-52\text{mV}$) | 7 |
-| **4** | Mist Valley | **Pump Action Shotgun** | 8-Pellet Buckshot | 12.0 m/s | 1.9 ($-55\text{mV}$) | 8 |
-| **5** | Deep Forest | **AK-47 Assault Rifle** | 7.62mm Auto Rifle | 13.5 m/s | 2.2 ($-58\text{mV}$) | 10 |
-| **6** | Old Lumber Mill | **Heavy Squad LMG** | 75-Round Belt Box | 15.0 m/s | 2.5 ($-61\text{mV}$) | 12 |
-| **7** | Eagle's Ridge | **Tactical Sniper Rifle** | 4x Optic Scope ADS | 16.5 m/s | 2.8 ($-64\text{mV}$) | 10 |
-| **8** | The Hive Core | **RPG-7 Rocket Launcher** | Explosive 12m AOE | 18.5 m/s | 3.3 ($-67\text{mV}$) | 15 |
+| **1** | Woodland Canopy | Badminton Racket | Melee Swat | 7.5 m/s | 1.0 (−46 mV) | 3 |
+| **2** | Pine Thicket | Tactical Handgun | Semi-Auto Pistol | 9.0 m/s | 1.3 (−49 mV) | 5 |
+| **3** | Bramble Hollow | MAC-10 Submachine Gun | 800 RPM SMG | 10.5 m/s | 1.6 (−52 mV) | 7 |
+| **4** | Mist Valley | Pump Action Shotgun | 8-Pellet Buckshot | 12.0 m/s | 1.9 (−55 mV) | 8 |
+| **5** | Deep Forest | AK-47 Assault Rifle | 7.62 mm Auto Rifle | 13.5 m/s | 2.2 (−58 mV) | 10 |
+| **6** | Old Lumber Mill | Heavy Squad LMG | 75-Round Belt Box | 15.0 m/s | 2.5 (−61 mV) | 12 |
+| **7** | Eagle's Ridge | Tactical Sniper Rifle | 4× Optic Scope ADS | 16.5 m/s | 2.8 (−64 mV) | 10 |
+| **8** | The Hive Core | RPG-7 Rocket Launcher | Explosive 12 m AOE | 18.5 m/s | 3.3 (−67 mV) | 15 |
+
+*Fly speeds, reflex thresholds, and level goals represent the game's configured difficulty parameters.*
 
 ---
 
-### 🕹️ Weapon Controls
-- Press **`1` through `8`** or use the **Mouse Scroll Wheel** to select unlocked weapons.
-- From Level 2 onward, press **`Z`**, **`X`**, **`C`**, **`V`**, or **`B`** to cast the five spells. The hotbar also shows each spell key.
-- **Holding Left Mouse Button**: Full automatic continuous fire for SMG, AK-47, and Heavy LMG.
-- **Right Mouse Button**:
-  - Sniper Rifle: Activates high-power **4x Telescopic Zoom Scope** with rangefinder reticle overlay.
-  - Firearms: Aligns tactical iron sights for tight ADS precision.
-- **RPG Rocket Launcher**: Launches high-velocity propelled rockets with exhaust smoke trails that detonate on impact in a 12-meter fireball blast, wiping out entire swarms at once.
+## 🕹️ Weapon Controls
+
+- Press **1–8** or use the **mouse scroll wheel** to select an unlocked weapon.
+- Starting at Level 2, press **Z, X, C, V, or B** to cast the five magic spells.
+- The spell hotbar displays the corresponding key for each spell.
+- **Hold Left Mouse Button:** Continuous fire for supported automatic weapons, including the SMG, AK-47, and Heavy LMG.
+- **Right Mouse Button:**
+  - **Sniper Rifle:** Activates the modeled 4× telescopic zoom with a rangefinder reticle.
+  - **Other firearms:** Aligns the tactical sights for more precise aiming.
+- **RPG Rocket Launcher:** Fires propelled rockets with exhaust smoke trails. On impact, rockets create an explosion with a modeled **12 m area of effect**, allowing multiple flies to be eliminated in one blast.
 
 ---
 
-### ⚡ Progressive Biological Fly Difficulty
-With each level, the simulated *Drosophila* connectome evolves:
-- **Flight Speed**: Scales from a gentle $7.5\text{ m/s}$ up to a blistering $18.5\text{ m/s}$ ($66\text{ km/h}$).
-- **Unpredictability & Saccades**: Saccade frequency increases over 300%, triggering erratic 3D zigzags, vertical jinks, and sharp multi-axis barrel rolls.
-- **Giant Fiber Sensitivity**: The escape spike threshold drops from $-46\text{ mV}$ down to a hyper-sensitive $-67\text{ mV}$, causing high-tier flies to fire evasive jump kicks at the slightest muzzle flash or visual expansion within 15 milliseconds.
+## ⚡ Progressive Biological Fly Difficulty
+
+With each level, the simulated fly behavior becomes more challenging.
+
+- **Flight Speed:** Increases from 7.5 m/s to 18.5 m/s.
+- **Unpredictability and Saccades:** Higher levels introduce more frequent 3D zigzags, vertical jinks, and sharp multi-axis evasive maneuvers.
+- **Escape Reflex Sensitivity:** The configured spike threshold changes with difficulty, influencing how readily flies trigger evasive responses.
+- **Threat Response:** Higher-tier flies react more quickly to modeled threats such as muzzle flashes and rapid visual expansion.
+
+These parameters are game-balancing settings inspired by insect neurobiology rather than exact measurements of real fruit fly behavior.
 
 ---
 
-## 🔊 100% Procedural 3D Audio (Web Audio API)
-- **3D Spatial Fly Buzz**: Dual-harmonic oscillator with pitch jitter, real-time Doppler shift, and HRTF 3D positional panning.
-- **Weapons**: Dynamic swoosh for racket, explosive crack + sub-bass kick for pistol, and high-cadence rattle for machine gun.
-- **Bio-feedback**: Synaptic audio chirp whenever the fly's Giant Fiber discharges an action potential.
-- **Forest Ambience**: Procedural wind generator and intermittent woodland bird tweets.
+## 🔊 Procedural 3D Audio — Web Audio API
+
+The game uses procedural audio effects to create an immersive hunting experience.
+
+- **3D Spatial Fly Buzz:** Dual-harmonic oscillator synthesis, pitch jitter, simulated Doppler shift, and HRTF-based positional panning.
+- **Weapon Audio:** Dynamic swooshes for the racket, sharp impact sounds for the pistol, and rapid-fire audio for machine guns.
+- **Biofeedback:** A synaptic-style audio chirp plays when the simulated Giant Fiber circuit fires an action potential.
+- **Forest Ambience:** Procedural wind generation and intermittent woodland bird sounds.
+- **Audio Toggle:** Press **M** to mute or unmute spatial audio.
+
+---
+
+## 🛠️ Technology Stack
+
+- **Three.js** — 3D graphics and rendering.
+- **JavaScript** — Game logic, weapon systems, movement, and AI behavior.
+- **Web Audio API** — Procedural audio and spatial sound effects.
+- **HTML5 & CSS3** — User interface, HUD, and menus.
+- **Python** — Optional local development server through `run_game.py`.
+
+---
+
+## 🚀 Play the Game
+
+Ready to hunt?
+
+<p align="center">
+  <a href="https://cbagh0819-ctrl.github.io/kill-the-fly-neural-hunter/landing.html#magic">
+    <img src="https://img.shields.io/badge/▶_LAUNCH_GAME-PLAY_NOW-00C853?style=for-the-badge" alt="Launch Game" />
+  </a>
+</p>
+
+**Live Demo:** https://cbagh0819-ctrl.github.io/kill-the-fly-neural-hunter/landing.html#magic
+
+---
+
+## 📌 Project Information
+
+**Project:** KILL THE FLY: Neural Hunter  
+**Genre:** 3D First-Person Shooter (FPS)  
+**Platform:** Web Browser  
+**Graphics Engine:** Three.js  
+**Audio Engine:** Web Audio API  
+**Game Modes:** 8-Level Campaign and Endless Mode  
+
+---
+
+<p align="center">
+  <strong>🪰 KILL THE FLY: Neural Hunter</strong>
+  <br />
+  <em>Aim fast. Think faster. Outsmart the swarm.</em>
+  <br /><br />
+  <a href="https://cbagh0819-ctrl.github.io/kill-the-fly-neural-hunter/landing.html#magic">🎮 PLAY THE LIVE DEMO</a>
+</p>
