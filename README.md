@@ -67,11 +67,8 @@ Unlike typical game bots that dodge using pseudo-random timers, the flies in **K
 
 The escape response is modeled using Leaky Integrate-and-Fire membrane dynamics:
 
-\[
-\tau_m \frac{dV_{GF}}{dt}
-=
--(V_{GF}-V_{rest}) + I_{synaptic}(LC4,LPLC2) + noise
-\]
+-(V_{GF} - V_{rest}) + I_{synaptic}(LC4,LPLC2) + \text{noise}
+$$
 
 - Resting potential: **−70.0 mV**
 - Spike threshold: **−48.0 mV** (adjustable by level)
