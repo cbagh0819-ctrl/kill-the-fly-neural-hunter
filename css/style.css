@@ -1602,3 +1602,294 @@ body.touch-enabled .mobile-controls-layer {
         font-size: 15px;
     }
 }
+
+
+/* ==========================================================================
+   PLATFORM MODES (WINDOWS PC vs ANDROID PHONES) & LANDSCAPE ENFORCEMENT
+   ========================================================================== */
+
+/* Mode Selection Component */
+.mode-select-section {
+    margin: 20px 0 10px;
+    width: 100%;
+}
+
+.mode-select-heading {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #00ffcc;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+}
+
+.mode-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.mode-option-card {
+    position: relative;
+    background: rgba(14, 22, 32, 0.82);
+    border: 2px solid rgba(0, 255, 204, 0.28);
+    border-radius: 14px;
+    padding: 22px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.mode-option-card:hover,
+.mode-option-card.active {
+    border-color: #00ffcc;
+    background: rgba(14, 28, 40, 0.95);
+    box-shadow: 0 0 25px rgba(0, 255, 204, 0.35);
+    transform: translateY(-2px);
+}
+
+.mode-option-card#modeCardAndroid {
+    border-color: rgba(255, 170, 0, 0.35);
+}
+
+.mode-option-card#modeCardAndroid:hover,
+.mode-option-card#modeCardAndroid.active {
+    border-color: #ffaa00;
+    box-shadow: 0 0 25px rgba(255, 170, 0, 0.35);
+}
+
+.mode-badge {
+    position: absolute;
+    top: -10px;
+    font-family: 'Orbitron', monospace;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(0, 255, 204, 0.15);
+    border: 1px solid #00ffcc;
+    color: #00ffcc;
+    text-transform: uppercase;
+}
+
+.mode-badge.highlight {
+    background: rgba(255, 170, 0, 0.18);
+    border-color: #ffaa00;
+    color: #ffaa00;
+}
+
+.mode-icon {
+    font-size: 34px;
+    margin: 4px 0 8px;
+    line-height: 1;
+}
+
+.mode-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 13.5px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+.mode-detail {
+    font-size: 11px;
+    line-height: 1.45;
+    color: #94a3b8;
+    margin-bottom: 12px;
+    flex: 1;
+}
+
+.mode-detail strong {
+    color: #ffaa00;
+}
+
+.mode-launch-btn {
+    width: 100% !important;
+    font-size: 11px !important;
+    padding: 10px 12px !important;
+    min-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    border-radius: 8px !important;
+}
+
+.mode-launch-btn.secondary {
+    background: linear-gradient(135deg, #ffaa00 0%, #cc7700 100%) !important;
+    color: #120902 !important;
+}
+
+/* --- Dedicated Landscape Mode Blocker Overlay --- */
+.landscape-blocker {
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 9, 14, 0.98);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+.landscape-modal {
+    background: rgba(12, 18, 28, 0.96);
+    border: 2px solid #ffaa00;
+    box-shadow: 0 0 50px rgba(255, 170, 0, 0.4), inset 0 0 20px rgba(255, 170, 0, 0.1);
+    border-radius: 20px;
+    padding: 32px 24px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.rotate-phone-anim {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.phone-frame {
+    width: 36px;
+    height: 60px;
+    border: 3px solid #00ffcc;
+    border-radius: 8px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: phoneRotateAnim 2.6s infinite ease-in-out;
+    transform-origin: center center;
+    box-shadow: 0 0 14px rgba(0, 255, 204, 0.4);
+}
+
+.phone-screen {
+    font-size: 16px;
+}
+
+.rotate-arrow-indicator {
+    position: absolute;
+    font-size: 26px;
+    color: #ffaa00;
+    animation: arrowSpin 2.6s infinite linear;
+    pointer-events: none;
+}
+
+@keyframes phoneRotateAnim {
+    0%, 25% { transform: rotate(0deg); }
+    50%, 75% { transform: rotate(-90deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes arrowSpin {
+    0% { transform: rotate(0deg); opacity: 0.4; }
+    50% { transform: rotate(-180deg); opacity: 1; }
+    100% { transform: rotate(-360deg); opacity: 0.4; }
+}
+
+.landscape-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: #ffaa00;
+    margin-bottom: 8px;
+    text-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
+}
+
+.landscape-divider {
+    width: 60px;
+    height: 2px;
+    background: #ffaa00;
+    margin-bottom: 14px;
+}
+
+.landscape-desc {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+}
+
+.landscape-desc strong {
+    color: #ffaa00;
+}
+
+.landscape-sub {
+    font-size: 11px;
+    color: #77bba5;
+    margin-bottom: 18px;
+}
+
+.landscape-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+/* --- Mode-Specific Class Rules --- */
+body.platform-windows .mobile-controls-layer {
+    display: none !important;
+}
+
+body.platform-windows .landscape-blocker {
+    display: none !important;
+}
+
+body.platform-windows .controls-hint {
+    display: block !important;
+}
+
+body.platform-android .controls-hint {
+    display: none !important;
+}
+
+body.platform-android.touch-enabled .mobile-controls-layer {
+    display: block;
+}
+
+@media (max-width: 600px) {
+    .mode-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .mode-option-card {
+        padding: 16px 12px 12px;
+    }
+
+    .mode-icon {
+        font-size: 24px;
+        margin: 2px 0 4px;
+    }
+
+    .mode-title {
+        font-size: 12px;
+    }
+
+    .mode-detail {
+        font-size: 10px;
+        margin-bottom: 8px;
+    }
+}

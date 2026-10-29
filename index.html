@@ -214,8 +214,38 @@
                 <div class="control-item"><kbd>R-CLICK</kbd> ADS / 4x Scope</div>
             </div>
 
-            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                <button class="hud-btn" id="resumeBtn">TAP / CLICK TO ENTER FOREST</button>
+            <!-- Platform Mode Selector (Option 1: Windows | Option 2: Android Phones) -->
+            <div class="mode-select-section">
+                <div class="mode-select-heading">SELECT YOUR PLAY MODE:</div>
+                <div class="mode-cards-grid">
+                    <!-- Option 1: Play in Windows -->
+                    <div class="mode-option-card" id="modeCardWindows">
+                        <div class="mode-badge" id="badgeWindows">WINDOWS / PC</div>
+                        <div class="mode-icon">🖥️</div>
+                        <h4 class="mode-title">PLAY IN WINDOWS</h4>
+                        <p class="mode-detail">Mouse Look &amp; Pointer Lock · WASD Keys · Desktop Scope &amp; HUD</p>
+                        <button type="button" class="hud-btn mode-launch-btn" id="launchWindowsBtn">
+                            <span>LAUNCH WINDOWS</span>
+                            <span class="btn-arrow">↗</span>
+                        </button>
+                    </div>
+
+                    <!-- Option 2: Play in Android Phones -->
+                    <div class="mode-option-card" id="modeCardAndroid">
+                        <div class="mode-badge highlight" id="badgeAndroid">ANDROID PHONES</div>
+                        <div class="mode-icon">📱</div>
+                        <h4 class="mode-title">PLAY IN PHONES</h4>
+                        <p class="mode-detail"><strong>Landscape Mode Only</strong> · Dual Virtual Joystick · Touch Fire &amp; Weapons</p>
+                        <button type="button" class="hud-btn mode-launch-btn secondary" id="launchAndroidBtn">
+                            <span>LAUNCH ANDROID</span>
+                            <span class="btn-arrow">↗</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 14px;">
+                <button class="hud-btn" id="resumeBtn" style="display: none;">RESUME GAME</button>
                 <a href="website.html" class="hud-btn secondary" style="text-decoration: none; display: inline-flex; align-items: center;">🌐 OFFICIAL WEBSITE</a>
             </div>
         </div>
@@ -319,10 +349,33 @@
         <!-- Top Right: Mobile Quick Actions Strip -->
         <div id="mobileTopStrip" class="mobile-top-strip">
             <button id="mobilePauseBtn" class="m-top-pill" title="Pause Game">⏸️</button>
+            <button id="mobileModeSwitchBtn" class="m-top-pill" title="Switch PC / Phone Mode">🖥️/📱</button>
             <button id="mobileNeuralToggleBtn" class="m-top-pill active" title="Toggle Fly Brain HUD">🧠</button>
             <button id="mobileTorchBtn" class="m-top-pill" title="Toggle Head Torch">🔦</button>
             <button id="mobileDayNightBtn" class="m-top-pill" title="Toggle Day/Night">☀️</button>
             <button id="mobileStormBtn" class="m-top-pill" title="Toggle Storm">⛈️</button>
+        </div>
+    </div>
+
+    <!-- Dedicated Landscape Mode Blocker (For Phones / Android Mode) -->
+    <div class="landscape-blocker" id="landscapeBlocker" style="display: none;">
+        <div class="landscape-modal">
+            <div class="rotate-phone-anim">
+                <div class="phone-frame">
+                    <div class="phone-screen">🪰</div>
+                </div>
+                <div class="rotate-arrow-indicator">↻</div>
+            </div>
+            <h2 class="landscape-title">ROTATE TO LANDSCAPE</h2>
+            <div class="landscape-divider"></div>
+            <p class="landscape-desc">
+                <strong>KILL THE FLY: Neural Hunter</strong> runs exclusively in <strong>Landscape Mode</strong> on Android &amp; mobile phones for twin-stick controls and wide visual field of view.
+            </p>
+            <p class="landscape-sub">Please turn your phone sideways to unlock the 3D forest.</p>
+            <div class="landscape-actions">
+                <button type="button" class="hud-btn" id="forceLandscapeBtn">⛶ ENTER FULLSCREEN LANDSCAPE</button>
+                <button type="button" class="hud-btn secondary" id="switchToWindowsFromBlocker">🖥️ SWITCH TO WINDOWS MODE</button>
+            </div>
         </div>
     </div>
 

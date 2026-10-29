@@ -78,6 +78,21 @@ class GameEngine {
         // Level 1 launch
         this.startLevel(1);
 
+        // Platform Play Modes: 'windows' (Desktop PC) or 'android' (Mobile Phone Landscape)
+        const isLikelyMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 1024) || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+        const savedMode = localStorage.getItem('ktf_game_mode');
+        this.gameMode = savedMode || (isLikelyMobile ? 'android' : 'windows');
+        this.isOrientationBlocked = false;
+
+        // Apply initial mode configuration
+        this.setPlatformMode(this.gameMode, false);
+
+        // Listen for orientation and viewport changes
+        window.addEventListener('resize', () => this.checkOrientation());
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => this.checkOrientation(), 250);
+        });
+
         // Game Loop
         this.clock = new THREE.Clock();
         this.animate = this.animate.bind(this);
@@ -281,20 +296,106 @@ class GameEngine {
     }
 
     setupUI() {
-        // Buttons
+        // Buttons & Mode Selectors
         const resumeBtn = document.getElementById('resumeBtn');
         if (resumeBtn) {
-            resumeBtn.addEventListener('click', (e) => {
+            const handleResume = (e) => {
                 e.stopPropagation();
                 soundSystem.init();
                 soundSystem.resume();
                 const overlay = document.getElementById('pauseOverlay');
                 if (overlay) overlay.style.display = 'none';
-                try {
-                    const p = document.body.requestPointerLock();
-                    if (p && p.catch) p.catch(() => {});
-                } catch (err) {}
+                if (this.gameMode === 'android') {
+                    this.isMobileActive = true;
+                    this.isPointerLocked = true;
+                    this.checkOrientation();
+                } else {
+                    this.isMobileActive = false;
+                    try {
+                        const p = document.body.requestPointerLock();
+                        if (p && p.catch) p.catch(() => {});
+                    } catch (_) {}
+                }
+                this.updateMobileWeaponBar();
+            };
+            resumeBtn.addEventListener('click', handleResume);
+            resumeBtn.addEventListener('touchstart', handleResume, { passive: false });
+        }
+
+        // --- Option 1: Play in Windows Button ---
+        const winBtn = document.getElementById('launchWindowsBtn');
+        if (winBtn) {
+            winBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.setPlatformMode('windows', true);
             });
+        }
+        const cardWin = document.getElementById('modeCardWindows');
+        if (cardWin) {
+            cardWin.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'BUTTON') {
+                    this.setPlatformMode('windows', false);
+                }
+            });
+        }
+
+        // --- Option 2: Play in Android Phones Button ---
+        const andBtn = document.getElementById('launchAndroidBtn');
+        if (andBtn) {
+            const handleAndroidLaunch = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.setPlatformMode('android', true);
+            };
+            andBtn.addEventListener('click', handleAndroidLaunch);
+            andBtn.addEventListener('touchstart', handleAndroidLaunch, { passive: false });
+        }
+        const cardAnd = document.getElementById('modeCardAndroid');
+        if (cardAnd) {
+            cardAnd.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'BUTTON') {
+                    this.setPlatformMode('android', false);
+                }
+            });
+        }
+
+        // --- Force Fullscreen Landscape Button from Blocker ---
+        const forceBtn = document.getElementById('forceLandscapeBtn');
+        if (forceBtn) {
+            const handleForceLandscape = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                    if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(() => {});
+                    }
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape').catch(() => {});
+                    }
+                } catch (_) {}
+                setTimeout(() => this.checkOrientation(), 250);
+            };
+            forceBtn.addEventListener('click', handleForceLandscape);
+            forceBtn.addEventListener('touchstart', handleForceLandscape, { passive: false });
+        }
+
+        // --- Switch to Windows from Blocker ---
+        const switchFromBlocker = document.getElementById('switchToWindowsFromBlocker');
+        if (switchFromBlocker) {
+            switchFromBlocker.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.setPlatformMode('windows', true);
+            });
+        }
+
+        // --- Mobile Top Bar Quick Switch Mode Pill ---
+        const mobileModeSwitchBtn = document.getElementById('mobileModeSwitchBtn');
+        if (mobileModeSwitchBtn) {
+            mobileModeSwitchBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleMobilePause();
+            }, { passive: false });
         }
 
         const restartBtn = document.getElementById('restartBtn');
@@ -776,6 +877,12 @@ class GameEngine {
 
     animate() {
         requestAnimationFrame(this.animate);
+
+        // Pause loop if phone is held in portrait mode
+        if (this.isOrientationBlocked) {
+            return;
+        }
+
         const dt = Math.min(this.clock.getDelta(), 0.05);
 
         if (!this.isPaused) {
@@ -1474,6 +1581,118 @@ class GameEngine {
             this.isMobileActive = false;
             this.mouse.isDown = false;
             this.touchMoveVector = { x: 0, y: 0 };
+        }
+    }
+
+    setPlatformMode(mode, autoLaunch = false) {
+        this.gameMode = mode;
+        try {
+            localStorage.setItem('ktf_game_mode', mode);
+        } catch (_) {}
+
+        const cardWin = document.getElementById('modeCardWindows');
+        const cardAnd = document.getElementById('modeCardAndroid');
+        const badgeWin = document.getElementById('badgeWindows');
+        const badgeAnd = document.getElementById('badgeAndroid');
+
+        if (mode === 'windows') {
+            document.body.classList.add('platform-windows');
+            document.body.classList.remove('platform-android', 'touch-enabled');
+
+            if (cardWin) cardWin.classList.add('active');
+            if (cardAnd) cardAnd.classList.remove('active');
+
+            // Hide landscape blocker in Windows mode
+            const blocker = document.getElementById('landscapeBlocker');
+            if (blocker) blocker.style.display = 'none';
+            this.isOrientationBlocked = false;
+
+            if (autoLaunch) {
+                soundSystem.init();
+                soundSystem.resume();
+                const overlay = document.getElementById('pauseOverlay');
+                if (overlay) overlay.style.display = 'none';
+                this.isMobileActive = false;
+                try {
+                    const p = document.body.requestPointerLock();
+                    if (p && p.catch) p.catch(() => {});
+                } catch (_) {}
+            }
+        } else {
+            // Android / Phone Mode
+            document.body.classList.add('platform-android', 'touch-enabled');
+            document.body.classList.remove('platform-windows');
+
+            if (cardAnd) cardAnd.classList.add('active');
+            if (cardWin) cardWin.classList.remove('active');
+
+            // Attempt Fullscreen and Landscape Orientation lock on Android devices
+            if (autoLaunch) {
+                try {
+                    if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(() => {});
+                    }
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape').catch(() => {});
+                    }
+                } catch (_) {}
+
+                soundSystem.init();
+                soundSystem.resume();
+                const overlay = document.getElementById('pauseOverlay');
+                if (overlay) overlay.style.display = 'none';
+                this.isMobileActive = true;
+                this.isPointerLocked = true;
+                this.updateMobileWeaponBar();
+                this.checkOrientation();
+            }
+        }
+
+        // Show resume button once mode has been established
+        const resumeBtn = document.getElementById('resumeBtn');
+        if (resumeBtn) {
+            resumeBtn.style.display = 'inline-block';
+            resumeBtn.textContent = `RESUME (${mode === 'windows' ? 'WINDOWS' : 'ANDROID LANDSCAPE'})`;
+        }
+
+        // Pre-highlight recommended mode based on user device
+        const isMobileDevice = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) || (window.innerWidth <= 1024 && navigator.maxTouchPoints > 0);
+        if (badgeWin && badgeAnd) {
+            if (isMobileDevice) {
+                badgeAnd.textContent = '★ RECOMMENDED FOR YOUR PHONE';
+                badgeWin.textContent = 'WINDOWS PC';
+            } else {
+                badgeWin.textContent = '★ RECOMMENDED FOR YOUR PC';
+                badgeAnd.textContent = 'ANDROID PHONES';
+            }
+        }
+    }
+
+    checkOrientation() {
+        if (this.gameMode !== 'android') {
+            const blocker = document.getElementById('landscapeBlocker');
+            if (blocker) blocker.style.display = 'none';
+            this.isOrientationBlocked = false;
+            return;
+        }
+
+        // In Android Mode: Enforce Landscape Mode Only
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const blocker = document.getElementById('landscapeBlocker');
+
+        if (isPortrait) {
+            this.isOrientationBlocked = true;
+            if (blocker) blocker.style.display = 'flex';
+        } else {
+            this.isOrientationBlocked = false;
+            if (blocker) blocker.style.display = 'none';
+
+            // Resize camera aspect ratio and renderer to fit landscape screen
+            if (this.camera && this.renderer) {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
         }
     }
 }
