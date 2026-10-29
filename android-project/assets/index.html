@@ -1,0 +1,341 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#07080c">
+    <title>KILL THE FLY: Neural Hunter | 3D FPS Game</title>
+    <link rel="stylesheet" href="css/style.css?v=2.2">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>ðŸª°</text></svg>">
+</head>
+<body class="platform-android touch-enabled">
+    <!-- 3D WebGL Canvas Container -->
+    <div id="gameContainer"></div>
+
+    <!-- Center FPS Crosshair & Dynamic Hitmarker -->
+    <div id="crosshairContainer">
+        <div class="crosshair">
+            <div class="crosshair-dot"></div>
+            <div class="crosshair-line top"></div>
+            <div class="crosshair-line bottom"></div>
+            <div class="crosshair-line left"></div>
+            <div class="crosshair-line right"></div>
+        </div>
+        <div id="hitmarker"></div>
+        <div id="flyRadar" class="fly-radar">
+            <span class="radar-icon">ðŸª°</span>
+            <span id="radarDistance">4.2m</span>
+            <span id="radarArrow">â†‘ AHEAD</span>
+        </div>
+    </div>
+
+    <!-- Main In-Game HUD -->
+    <div id="hudContainer">
+        <!-- Top Row: Mission Status & Real-time Fly Brain Telemetry -->
+        <div class="hud-top">
+            <!-- Left: Mission & Objective -->
+            <div class="hud-panel mission-panel">
+                <div class="panel-title">MISSION OBJECTIVE</div>
+                <div class="mission-goal">
+                    <span id="hudGoal">0 / 3</span>
+                    <span class="label">FRUIT FLIES SQUASHED</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+                    <div class="level-tag" id="hudLevel" style="margin-top: 0;">LEVEL 1</div>
+                    <div class="level-tag" id="hudFps" style="margin-top: 0; background: rgba(0, 255, 136, 0.18); border-color: #00ff88; color: #00ff88;">âš¡ 60 FPS</div>
+                </div>
+                <div style="margin-top: 6px; font-size: 12px; color: #77bba5;">
+                    FLIES IN FOREST: <strong id="hudFliesRemaining" style="color: #00ffcc;">2</strong>
+                </div>
+                <!-- Day / Night, Rain & Flashlight Quick Controls -->
+                <div class="quick-controls" style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button id="hudTorchBtn" class="hud-pill-btn" title="Toggle Head Torch (F)">ðŸ”¦ TORCH: OFF [F]</button>
+                    <button id="hudDayNightBtn" class="hud-pill-btn" title="Toggle Day/Night Mode (N)">â˜€ï¸ DAY [N]</button>
+                    <button id="hudRainBtn" class="hud-pill-btn" title="Toggle Rain & Storm Mode (R)">â›ˆï¸ RAIN: OFF [R]</button>
+                </div>
+            </div>
+
+            <!-- Right: Drosophila Neuro-Computational Monitor -->
+            <div class="hud-panel neural-panel">
+                <div class="neural-header">
+                    <span class="panel-title" style="margin: 0;">DROSOPHILA CONNECTOME</span>
+                    <span class="status-badge normal" id="hudEscapeStatus">ðŸŒ¿ FORAGING</span>
+                </div>
+
+                <!-- Connectome Schematic Canvas -->
+                <canvas id="neuralCanvas" width="284" height="180"></canvas>
+
+                <!-- Action Potential Oscilloscope -->
+                <div class="osc-container">
+                    <div class="osc-header">
+                        <span>GF MEMBRANE POTENTIAL</span>
+                        <span id="hudVoltage">-70.0 mV</span>
+                    </div>
+                    <canvas id="oscCanvas" width="284" height="60"></canvas>
+                </div>
+
+                <!-- Live Biological Readouts -->
+                <div class="telemetry-grid">
+                    <div class="telem-box">
+                        <div class="telem-title">LC4 LOOMING RATE</div>
+                        <div class="telem-value" id="hudLC4">0%</div>
+                    </div>
+                    <div class="telem-box">
+                        <div class="telem-title">WING FREQUENCY</div>
+                        <div class="telem-value" id="hudWingFreq">185 Hz</div>
+                    </div>
+                    <div class="telem-box" style="grid-column: span 2;">
+                        <div class="telem-title">TTM MOTOR REFLEX (LEG JUMP)</div>
+                        <div class="telem-value" id="hudTTM">ARMED (STANDBY)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Elemental Magic Spells Hotbar (Unlocked from Level 2 onward) -->
+        <div id="magicHotbar" class="magic-hotbar" style="display: none;">
+            <div class="magic-title-tag">âœ¨ ELEMENTAL MAGIC (SLAYS RED ANGRY FLIES)</div>
+            <div class="magic-slots-container">
+                <div class="magic-slot" id="magicSlot1" title="Summon Lightning (Key Z)">
+                    <div class="magic-key">Z</div>
+                    <div class="magic-icon">âš¡</div>
+                    <div class="magic-name">LIGHTNING</div>
+                    <div class="magic-cd-fill" id="magicCd1"></div>
+                    <div class="magic-cd-text" id="magicCdText1"></div>
+                </div>
+
+                <div class="magic-slot" id="magicSlot2" title="Fireball Throw (Key X)">
+                    <div class="magic-key">X</div>
+                    <div class="magic-icon">ðŸ”¥</div>
+                    <div class="magic-name">FIREBALL</div>
+                    <div class="magic-cd-fill" id="magicCd2"></div>
+                    <div class="magic-cd-text" id="magicCdText2"></div>
+                </div>
+
+                <div class="magic-slot" id="magicSlot3" title="Smoke Confuse (Key C)">
+                    <div class="magic-key">C</div>
+                    <div class="magic-icon">ðŸ’¨</div>
+                    <div class="magic-name">SMOKE</div>
+                    <div class="magic-cd-fill" id="magicCd3"></div>
+                    <div class="magic-cd-text" id="magicCdText3"></div>
+                </div>
+
+                <div class="magic-slot" id="magicSlot4" title="Echo Attack (Key V)">
+                    <div class="magic-key">V</div>
+                    <div class="magic-icon">ðŸ”Š</div>
+                    <div class="magic-name">ECHO</div>
+                    <div class="magic-cd-fill" id="magicCd4"></div>
+                    <div class="magic-cd-text" id="magicCdText4"></div>
+                </div>
+
+                <div class="magic-slot" id="magicSlot5" title="Earth Crust (Key B)">
+                    <div class="magic-key">B</div>
+                    <div class="magic-icon">ðŸª¨</div>
+                    <div class="magic-name">EARTH</div>
+                    <div class="magic-cd-fill" id="magicCd5"></div>
+                    <div class="magic-cd-text" id="magicCdText5"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row: Health, Controls Hint & Active Weapon Display -->
+        <div class="hud-bottom">
+            <!-- Operative Health Bar Panel -->
+            <div class="hud-panel health-panel" id="healthPanel">
+                <div class="health-header">
+                    <span class="health-title"><span class="health-icon">â¤ï¸</span> HEALTH</span>
+                    <span class="health-value" id="hudHealthText">100 / 100 HP</span>
+                </div>
+                <div class="health-bar-container">
+                    <div class="health-bar-fill" id="hudHealthFill" role="progressbar" aria-label="Character health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" style="--health-scale: 1; width: 100%;"></div>
+                </div>
+            </div>
+
+            <div class="hud-panel controls-hint">
+                <div>[<strong>W,A,S,D</strong>] Walk &nbsp;|&nbsp; [<strong>SHIFT</strong>] Sprint &nbsp;|&nbsp; [<strong>SPACE</strong>] Jump</div>
+                <div>[<strong>1 - 8</strong>] Weapons &nbsp;|&nbsp; [<strong>Z, X, C, V, B</strong>] Spells (Lvl 2+) &nbsp;|&nbsp; [<strong>L-CLICK</strong>] Attack &nbsp;|&nbsp; [<strong>T</strong>] Reload</div>
+                <div>[<strong>R</strong>] Storm (Night+Rain+Lightning) &nbsp;|&nbsp; [<strong>F</strong>] Torch &nbsp;|&nbsp; [<strong>N</strong>] Day/Night</div>
+            </div>
+
+            <div class="hud-panel weapon-panel">
+                <div class="weapon-title" id="weaponName">BADMINTON RACKET</div>
+                <div class="weapon-ammo" id="weaponAmmo">âˆž (MELEE)</div>
+                <div class="reload-prompt" id="reloadPrompt">PRESS [T] TO RELOAD</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sniper Telescopic Optical Scope Overlay -->
+    <div id="sniperScopeOverlay" class="sniper-scope-overlay" style="display: none;">
+        <div class="scope-vignette"></div>
+        <div class="scope-lens">
+            <div class="scope-crosshair-h"></div>
+            <div class="scope-crosshair-v"></div>
+            <div class="scope-circle"></div>
+            <div class="scope-tag">4X OPTICAL ZOOM &bull; RANGEFINDER</div>
+        </div>
+    </div>
+
+    <!-- Level Announcement Banner -->
+    <div id="levelBanner">
+        <div id="bannerTitle">LEVEL 1: WOODLAND CANOPY</div>
+        <div id="bannerSubtitle">WEAPON: BADMINTON RACKET | OBJECTIVE: ELIMINATE 3 FLIES</div>
+    </div>
+
+    <!-- Quick Floating Notification Box -->
+    <div id="notificationBox">LEVEL COMPLETE!</div>
+
+    <!-- Pause / Start Welcome Screen -->
+    <div class="overlay-screen" id="pauseOverlay">
+        <div class="modal-card">
+            <h1 class="modal-title">KILL THE FLY</h1>
+            <h3 class="modal-subtitle">NEURAL HUNTER &bull; 3D SCIENTIFIC FPS</h3>
+
+            <div class="science-explainer">
+                <strong>REAL FLY BRAIN ESCAPE CIRCUIT:</strong><br>
+                Flies don't dodge randomly! Their compound eyes route visual looming signals to <strong>LC4 / LPLC2</strong> columnar neurons. When a weapon rapidly expands in their field of view, it charges the <strong>Giant Fiber (GF)</strong> command neuron. At -48mV threshold, the GF spikes, triggering explosive <strong>TTM</strong> leg jumps and <strong>DLM</strong> flight banking within 10 milliseconds! Sneak up from blind spots or time your strikes between saccades!
+            </div>
+
+                        <div class="controls-table">
+                <div class="control-item">🕹️ <strong>Left Screen:</strong> Drag Joystick to Move</div>
+                <div class="control-item">👆 <strong>Right Screen:</strong> Swipe to Aim Crosshair</div>
+                <div class="control-item">💥 <strong>Red Button:</strong> Swing / Fire Weapon</div>
+                <div class="control-item">🎯 <strong>Scope Button:</strong> ADS / 4x Sniper Zoom</div>
+                <div class="control-item">⚡ <strong>Action Buttons:</strong> Run, Jump &amp; Reload</div>
+                <div class="control-item">🪄 <strong>Spells Hotbar:</strong> Tap Magic to Cast</div>
+                <div class="control-item">🔫 <strong>Bottom Bar:</strong> Tap Any Weapon 1–8</div>
+                <div class="control-item">🔦 <strong>Top Strip:</strong> Torch, Day/Night &amp; Storm</div>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
+                <button class="hud-btn" id="resumeBtn" style="font-size: 20px; padding: 16px 42px; border-radius: 10px; width: 100%; max-width: 360px;">
+                    ▶ TAP TO ENTER FOREST
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Screen Modal -->
+    <div class="overlay-screen" id="victoryModal" style="display: none;">
+        <div class="modal-card">
+            <h1 class="modal-title" style="color: #ffea00;">MISSION ACCOMPLISHED!</h1>
+            <h3 class="modal-subtitle">THE FOREST HAS BEEN PURGED OF ALL NEURAL SWARMS</h3>
+
+            <div class="victory-stats" id="victoryStats">
+                <!-- Dynamically populated stats -->
+            </div>
+
+            <button class="hud-btn" id="endlessBtn">PLAY ENDLESS HUNT</button>
+            <button class="hud-btn secondary" id="restartBtn">RESTART MISSION</button>
+        </div>
+    </div>
+
+    <!-- Full-screen Damage Hit Flash Vignette -->
+    <div id="damageOverlay" class="damage-overlay"></div>
+
+    <!-- Dramatic "YOU DIED" Red Screen Death Modal -->
+    <div class="death-screen" id="deathOverlay" style="display: none;">
+        <div class="death-modal">
+            <h1 class="death-title">YOU DIED</h1>
+            <div class="death-divider"></div>
+            <h3 class="death-subtitle" id="deathSubtitle">SLAIN BY ANGRY RED DROSOPHILA SWARM</h3>
+
+            <div class="death-stats" id="deathStats">
+                <div class="stat-row">
+                    <span>SURVIVED UNTIL:</span>
+                    <strong id="deathLevelReached" style="color: #ff3344;">LEVEL 1</strong>
+                </div>
+                <div class="stat-row">
+                    <span>FLIES SQUASHED:</span>
+                    <strong id="deathFliesKilled" style="color: #00ffcc;">0</strong>
+                </div>
+                <div class="stat-row">
+                    <span>SHOTS FIRED:</span>
+                    <strong id="deathShotsFired">0</strong>
+                </div>
+                <div class="stat-row">
+                    <span>DEATH PENALTY:</span>
+                    <strong style="color: #ffaa00;">RESET TO LEVEL 1</strong>
+                </div>
+            </div>
+
+            <div class="death-actions">
+                <button class="hud-btn death-play-btn" id="deathPlayAgainBtn">PLAY AGAIN</button>
+                <button class="hud-btn secondary" id="deathExitBtn">EXIT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Touch Controls Layer (Virtual Joystick & Action Buttons) -->
+    <div id="mobileControlsLayer" class="mobile-controls-layer">
+        <!-- Left: Virtual Movement Joystick Zone -->
+        <div id="mobileJoystickZone" class="mobile-joystick-zone">
+            <div id="mobileJoystickBase" class="mobile-joystick-base">
+                <div id="mobileJoystickThumb" class="mobile-joystick-thumb"></div>
+            </div>
+        </div>
+
+        <!-- Right: Touch Look / Swipe Zone -->
+        <div id="mobileLookZone" class="mobile-look-zone"></div>
+
+        <!-- Right: Mobile Touch Action Buttons -->
+        <div id="mobileActionButtons" class="mobile-action-buttons">
+            <div class="m-cluster-top">
+                <button id="mobileSprintBtn" class="mobile-btn sprint" aria-label="Sprint">
+                    <span class="m-icon">âš¡</span>
+                    <span class="m-label">RUN</span>
+                </button>
+                <button id="mobileAimBtn" class="mobile-btn aim" aria-label="Scope / Aim">
+                    <span class="m-icon">ðŸŽ¯</span>
+                    <span class="m-label">AIM</span>
+                </button>
+                <button id="mobileReloadBtn" class="mobile-btn reload" aria-label="Reload">
+                    <span class="m-icon">ðŸ”„</span>
+                    <span class="m-label">RELOAD</span>
+                </button>
+                <button id="mobileJumpBtn" class="mobile-btn jump" aria-label="Jump">
+                    <span class="m-icon">â¬†ï¸</span>
+                    <span class="m-label">JUMP</span>
+                </button>
+            </div>
+            <button id="mobileAttackBtn" class="mobile-btn attack" aria-label="Attack / Fire">
+                <span class="m-attack-ring"></span>
+                <span class="m-icon">ðŸ’¥</span>
+                <span class="m-label">FIRE</span>
+            </button>
+        </div>
+
+        <!-- Bottom: Touch Quick Weapon Strip -->
+        <div id="mobileWeaponBar" class="mobile-weapon-bar">
+            <!-- Dynamically populated weapon chips -->
+        </div>
+
+        <!-- Top Right: Mobile Quick Actions Strip -->
+        <div id="mobileTopStrip" class="mobile-top-strip">
+            <button id="mobilePauseBtn" class="m-top-pill" title="Pause Game">â¸ï¸</button>
+            <button id="mobileModeSwitchBtn" class="m-top-pill" title="Switch PC / Phone Mode">ðŸ–¥ï¸/ðŸ“±</button>
+            <button id="mobileNeuralToggleBtn" class="m-top-pill active" title="Toggle Fly Brain HUD">ðŸ§ </button>
+            <button id="mobileTorchBtn" class="m-top-pill" title="Toggle Head Torch">ðŸ”¦</button>
+            <button id="mobileDayNightBtn" class="m-top-pill" title="Toggle Day/Night">â˜€ï¸</button>
+            <button id="mobileStormBtn" class="m-top-pill" title="Toggle Storm">â›ˆï¸</button>
+        </div>
+    </div>
+
+    
+
+    <!-- Scripts (Ordered Dependency Execution) -->
+    <script src="js/libs/three.min.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/flyBrain.js"></script>
+    <script src="js/forest.js"></script>
+    <script src="js/fly.js"></script>
+    <script src="js/weapons.js"></script>
+    <script src="js/magic.js"></script>
+    
+    <script src="js/neuralHUD.js"></script>
+    <script src="js/game.js?v=2.2"></script>
+</body>
+</html>
