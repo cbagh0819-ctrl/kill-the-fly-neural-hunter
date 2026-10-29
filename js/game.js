@@ -62,13 +62,6 @@ class GameEngine {
             isDead: false
         };
 
-        // Platform Play Modes: 'windows' (Desktop PC) or 'android' (Mobile Phone Landscape)
-        const isLikelyMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 1024) || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
-        const savedMode = localStorage.getItem('ktf_game_mode');
-        this.gameMode = savedMode || (isLikelyMobile ? 'android' : 'windows');
-        this.isTouchDevice = isLikelyMobile;
-        this.isOrientationBlocked = false;
-
         // Initialize Three.js
         this.initThree();
         this.initEnvironment();
@@ -77,8 +70,6 @@ class GameEngine {
         this.initNeuralHUD();
         this.setupEventListeners();
         this.setupUI();
-        this.setupMobileControls();
-
         // Pre-compile all WebGL shaders up front to eliminate first-frame or mid-game shader stutter
         try {
             this.renderer.compile(this.scene, this.camera);
@@ -86,15 +77,6 @@ class GameEngine {
 
         // Level 1 launch
         this.startLevel(1);
-
-        // Apply initial mode configuration
-        this.setPlatformMode(this.gameMode, false);
-
-        // Listen for orientation and viewport changes
-        window.addEventListener('resize', () => this.checkOrientation());
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => this.checkOrientation(), 250);
-        });
 
         // Game Loop
         this.clock = new THREE.Clock();
@@ -186,8 +168,7 @@ class GameEngine {
                 if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
             }
 
-            // NEVER request pointer lock on Android / Phone mode (prevents Chrome mouse capture toast)
-            if (this.gameMode === 'windows' && !this.isPointerLocked) {
+            if (!this.isPointerLocked) {
                 try {
                     const lockPromise = document.body.requestPointerLock();
                     if (lockPromise && lockPromise.catch) {
@@ -300,106 +281,20 @@ class GameEngine {
     }
 
     setupUI() {
-        // Buttons & Mode Selectors
+        // Buttons
         const resumeBtn = document.getElementById('resumeBtn');
         if (resumeBtn) {
-            const handleResume = (e) => {
+            resumeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 soundSystem.init();
                 soundSystem.resume();
                 const overlay = document.getElementById('pauseOverlay');
                 if (overlay) overlay.style.display = 'none';
-                if (this.gameMode === 'android') {
-                    this.isMobileActive = true;
-                    this.isPointerLocked = true;
-                    this.checkOrientation();
-                } else {
-                    this.isMobileActive = false;
-                    try {
-                        const p = document.body.requestPointerLock();
-                        if (p && p.catch) p.catch(() => {});
-                    } catch (_) {}
-                }
-                this.updateMobileWeaponBar();
-            };
-            resumeBtn.addEventListener('click', handleResume);
-            resumeBtn.addEventListener('touchstart', handleResume, { passive: false });
-        }
-
-        // --- Option 1: Play in Windows Button ---
-        const winBtn = document.getElementById('launchWindowsBtn');
-        if (winBtn) {
-            winBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.setPlatformMode('windows', true);
-            });
-        }
-        const cardWin = document.getElementById('modeCardWindows');
-        if (cardWin) {
-            cardWin.addEventListener('click', (e) => {
-                if (e.target.tagName !== 'BUTTON') {
-                    this.setPlatformMode('windows', false);
-                }
-            });
-        }
-
-        // --- Option 2: Play in Android Phones Button ---
-        const andBtn = document.getElementById('launchAndroidBtn');
-        if (andBtn) {
-            const handleAndroidLaunch = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.setPlatformMode('android', true);
-            };
-            andBtn.addEventListener('click', handleAndroidLaunch);
-            andBtn.addEventListener('touchstart', handleAndroidLaunch, { passive: false });
-        }
-        const cardAnd = document.getElementById('modeCardAndroid');
-        if (cardAnd) {
-            cardAnd.addEventListener('click', (e) => {
-                if (e.target.tagName !== 'BUTTON') {
-                    this.setPlatformMode('android', false);
-                }
-            });
-        }
-
-        // --- Force Fullscreen Landscape Button from Blocker ---
-        const forceBtn = document.getElementById('forceLandscapeBtn');
-        if (forceBtn) {
-            const handleForceLandscape = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
                 try {
-                    if (document.documentElement.requestFullscreen) {
-                        document.documentElement.requestFullscreen().catch(() => {});
-                    }
-                    if (screen.orientation && screen.orientation.lock) {
-                        screen.orientation.lock('landscape').catch(() => {});
-                    }
-                } catch (_) {}
-                setTimeout(() => this.checkOrientation(), 250);
-            };
-            forceBtn.addEventListener('click', handleForceLandscape);
-            forceBtn.addEventListener('touchstart', handleForceLandscape, { passive: false });
-        }
-
-        // --- Switch to Windows from Blocker ---
-        const switchFromBlocker = document.getElementById('switchToWindowsFromBlocker');
-        if (switchFromBlocker) {
-            switchFromBlocker.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.setPlatformMode('windows', true);
+                    const p = document.body.requestPointerLock();
+                    if (p && p.catch) p.catch(() => {});
+                } catch (err) {}
             });
-        }
-
-        // --- Mobile Top Bar Quick Switch Mode Pill ---
-        const mobileModeSwitchBtn = document.getElementById('mobileModeSwitchBtn');
-        if (mobileModeSwitchBtn) {
-            mobileModeSwitchBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.toggleMobilePause();
-            }, { passive: false });
         }
 
         const restartBtn = document.getElementById('restartBtn');
@@ -731,11 +626,7 @@ class GameEngine {
         for (let i = 0; i < 5; i++) {
             this.spawnFly();
         }
-        if (this.gameMode === 'windows') {
-            try {
-                document.body.requestPointerLock();
-            } catch (_) {}
-        }
+        document.body.requestPointerLock();
     }
 
     restartGame() {
@@ -885,12 +776,6 @@ class GameEngine {
 
     animate() {
         requestAnimationFrame(this.animate);
-
-        // Pause loop if phone is held in portrait mode
-        if (this.isOrientationBlocked) {
-            return;
-        }
-
         const dt = Math.min(this.clock.getDelta(), 0.05);
 
         if (!this.isPaused) {
@@ -1297,439 +1182,11 @@ class GameEngine {
         // Restart from Level 1
         this.startLevel(1);
 
-        // Re-engage pointer lock only on Windows PC
-        if (this.gameMode === 'windows') {
-            try {
-                const p = document.body.requestPointerLock();
-                if (p && p.catch) p.catch(() => {});
-            } catch (e) {}
-        }
-    }
-
-    setupMobileControls() {
-        const controlsLayer = document.getElementById('mobileControlsLayer');
-        if (!controlsLayer) return;
-
-        // Auto-enable touch controls on touch devices or small screens
-        if (this.isTouchDevice) {
-            document.body.classList.add('touch-enabled');
-        }
-
-        // --- Left Virtual Movement Joystick ---
-        const joyZone = document.getElementById('mobileJoystickZone');
-        const joyBase = document.getElementById('mobileJoystickBase');
-        const joyThumb = document.getElementById('mobileJoystickThumb');
-        const maxRadius = 45;
-
-        if (joyZone && joyBase && joyThumb) {
-            // Ensure joystick base is visibly anchored in bottom left
-            joyBase.style.display = 'block';
-
-            const handleJoyStart = (e) => {
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    const touch = e.changedTouches[i];
-                    if (this.joystickTouchId === null) {
-                        this.joystickTouchId = touch.identifier;
-                        const rect = joyBase.getBoundingClientRect();
-                        this.joystickCenter = { 
-                            x: rect.left + rect.width / 2, 
-                            y: rect.top + rect.height / 2 
-                        };
-                        
-                        const dx = touch.clientX - this.joystickCenter.x;
-                        const dy = touch.clientY - this.joystickCenter.y;
-                        const dist = Math.hypot(dx, dy);
-                        const angle = Math.atan2(dy, dx);
-                        const clampedDist = Math.min(dist, maxRadius);
-                        const thumbX = Math.cos(angle) * clampedDist;
-                        const thumbY = Math.sin(angle) * clampedDist;
-                        joyThumb.style.transform = `translate(calc(-50% + ${thumbX}px), calc(-50% + ${thumbY}px))`;
-
-                        this.touchMoveVector.x = thumbX / maxRadius;
-                        this.touchMoveVector.y = thumbY / maxRadius;
-                        break;
-                    }
-                }
-            };
-
-            const handleJoyMove = (e) => {
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    const touch = e.changedTouches[i];
-                    if (touch.identifier === this.joystickTouchId) {
-                        const dx = touch.clientX - this.joystickCenter.x;
-                        const dy = touch.clientY - this.joystickCenter.y;
-                        const dist = Math.hypot(dx, dy);
-                        const angle = Math.atan2(dy, dx);
-                        const clampedDist = Math.min(dist, maxRadius);
-
-                        const thumbX = Math.cos(angle) * clampedDist;
-                        const thumbY = Math.sin(angle) * clampedDist;
-                        joyThumb.style.transform = `translate(calc(-50% + ${thumbX}px), calc(-50% + ${thumbY}px))`;
-
-                        this.touchMoveVector.x = thumbX / maxRadius;
-                        this.touchMoveVector.y = thumbY / maxRadius;
-                        break;
-                    }
-                }
-            };
-
-            const handleJoyEnd = (e) => {
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    if (e.changedTouches[i].identifier === this.joystickTouchId) {
-                        this.joystickTouchId = null;
-                        this.touchMoveVector = { x: 0, y: 0 };
-                        joyThumb.style.transform = 'translate(-50%, -50%)';
-                        break;
-                    }
-                }
-            };
-
-            joyZone.addEventListener('touchstart', handleJoyStart, { passive: false });
-            joyZone.addEventListener('touchmove', handleJoyMove, { passive: false });
-            joyZone.addEventListener('touchend', handleJoyEnd, { passive: false });
-            joyZone.addEventListener('touchcancel', handleJoyEnd, { passive: false });
-        }
-
-        // --- Right Touch Look Zone ---
-        const lookZone = document.getElementById('mobileLookZone');
-        if (lookZone) {
-            const handleLookStart = (e) => {
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    const touch = e.changedTouches[i];
-                    if (this.lookTouchId === null) {
-                        this.lookTouchId = touch.identifier;
-                        this.lastLookPos = { x: touch.clientX, y: touch.clientY };
-                        break;
-                    }
-                }
-            };
-
-            const handleLookMove = (e) => {
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    const touch = e.changedTouches[i];
-                    if (touch.identifier === this.lookTouchId) {
-                        const dx = touch.clientX - this.lastLookPos.x;
-                        const dy = touch.clientY - this.lastLookPos.y;
-                        this.lastLookPos = { x: touch.clientX, y: touch.clientY };
-
-                        const sensitivity = 0.0042;
-                        this.player.yaw -= dx * sensitivity;
-                        this.player.pitch -= dy * sensitivity;
-
-                        const maxPitch = Math.PI / 2 - 0.08;
-                        this.player.pitch = Math.max(-maxPitch, Math.min(maxPitch, this.player.pitch));
-                        break;
-                    }
-                }
-            };
-
-            const handleLookEnd = (e) => {
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    if (e.changedTouches[i].identifier === this.lookTouchId) {
-                        this.lookTouchId = null;
-                        break;
-                    }
-                }
-            };
-
-            lookZone.addEventListener('touchstart', handleLookStart, { passive: false });
-            lookZone.addEventListener('touchmove', handleLookMove, { passive: false });
-            lookZone.addEventListener('touchend', handleLookEnd, { passive: false });
-            lookZone.addEventListener('touchcancel', handleLookEnd, { passive: false });
-        }
-
-        // --- Mobile Action Buttons ---
-        const attackBtn = document.getElementById('mobileAttackBtn');
-        if (attackBtn) {
-            attackBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (this.player.isDead) return;
-                this.mouse.isDown = true;
-                this.handleAttack();
-            }, { passive: false });
-
-            attackBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.mouse.isDown = false;
-            }, { passive: false });
-
-            attackBtn.addEventListener('touchcancel', () => {
-                this.mouse.isDown = false;
-            });
-        }
-
-        const jumpBtn = document.getElementById('mobileJumpBtn');
-        if (jumpBtn) {
-            jumpBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.touchJumpRequested = true;
-            }, { passive: false });
-        }
-
-        const reloadBtn = document.getElementById('mobileReloadBtn');
-        if (reloadBtn) {
-            reloadBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.weaponManager.reload();
-                this.updateWeaponHUD();
-            }, { passive: false });
-        }
-
-        const aimBtn = document.getElementById('mobileAimBtn');
-        if (aimBtn) {
-            aimBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.isAimingTouch = !this.isAimingTouch;
-                aimBtn.classList.toggle('active', this.isAimingTouch);
-                this.weaponManager.setAiming(this.isAimingTouch);
-            }, { passive: false });
-        }
-
-        const sprintBtn = document.getElementById('mobileSprintBtn');
-        if (sprintBtn) {
-            sprintBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.isTouchSprinting = !this.isTouchSprinting;
-                sprintBtn.classList.toggle('active', this.isTouchSprinting);
-            }, { passive: false });
-        }
-
-        // --- Mobile Top Strip Actions ---
-        const pauseBtn = document.getElementById('mobilePauseBtn');
-        if (pauseBtn) {
-            pauseBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.toggleMobilePause();
-            }, { passive: false });
-        }
-
-        const neuralToggleBtn = document.getElementById('mobileNeuralToggleBtn');
-        if (neuralToggleBtn) {
-            neuralToggleBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const np = document.querySelector('.neural-panel');
-                if (np) {
-                    const isHidden = np.classList.toggle('mobile-hidden');
-                    np.classList.toggle('mobile-open', !isHidden);
-                    neuralToggleBtn.classList.toggle('active', !isHidden);
-                }
-            }, { passive: false });
-        }
-
-        const torchBtn = document.getElementById('mobileTorchBtn');
-        if (torchBtn) {
-            torchBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.toggleFlashlight();
-            }, { passive: false });
-        }
-
-        const dayNightBtn = document.getElementById('mobileDayNightBtn');
-        if (dayNightBtn) {
-            dayNightBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.toggleDayNight();
-            }, { passive: false });
-        }
-
-        const stormBtn = document.getElementById('mobileStormBtn');
-        if (stormBtn) {
-            stormBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.toggleStorm();
-            }, { passive: false });
-        }
-    }
-
-    updateMobileWeaponBar() {
-        const bar = document.getElementById('mobileWeaponBar');
-        if (!bar) return;
-        const maxUnlocked = this.isEndless ? 8 : this.level;
-        const icons = ['🏸', '🪰', '🔫', '⚡', '🎯', '💣', '🔥', '💥'];
-        const names = ['RACKET', 'SWATTER', 'GLOCK', 'LASER', 'SNIPER', 'GRENADE', 'FLAME', 'ROCKET'];
-
-        let html = '';
-        for (let i = 1; i <= 8; i++) {
-            const isUnlocked = i <= maxUnlocked;
-            const isActive = this.weaponManager && this.weaponManager.currentLevel === i;
-            html += `
-                <button class="m-weap-btn ${isActive ? 'active' : ''} ${!isUnlocked ? 'locked' : ''}" 
-                        data-weapon="${i}" ${!isUnlocked ? 'disabled' : ''}>
-                    <span class="m-weap-num">${i}</span>
-                    <span class="m-weap-icon">${icons[i - 1]}</span>
-                    <span class="m-weap-name">${names[i - 1]}</span>
-                </button>
-            `;
-        }
-        bar.innerHTML = html;
-
-        bar.querySelectorAll('.m-weap-btn:not(.locked)').forEach(btn => {
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const num = parseInt(btn.dataset.weapon);
-                if (num) {
-                    this.weaponManager.setWeapon(num);
-                    this.updateWeaponHUD();
-                    this.updateMobileWeaponBar();
-                }
-            }, { passive: false });
-        });
-    }
-
-    toggleMobilePause() {
-        const overlay = document.getElementById('pauseOverlay');
-        if (!overlay) return;
-        const isOpen = overlay.style.display !== 'none';
-        if (isOpen) {
-            overlay.style.display = 'none';
-            this.isPointerLocked = true;
-            this.isMobileActive = true;
-        } else {
-            overlay.style.display = 'flex';
-            this.isPointerLocked = false;
-            this.isMobileActive = false;
-            this.mouse.isDown = false;
-            this.touchMoveVector = { x: 0, y: 0 };
-        }
-    }
-
-    setPlatformMode(mode, autoLaunch = false) {
-        this.gameMode = mode;
+        // Re-engage pointer lock
         try {
-            localStorage.setItem('ktf_game_mode', mode);
-        } catch (_) {}
-
-        const cardWin = document.getElementById('modeCardWindows');
-        const cardAnd = document.getElementById('modeCardAndroid');
-        const badgeWin = document.getElementById('badgeWindows');
-        const badgeAnd = document.getElementById('badgeAndroid');
-        const neuralPanel = document.querySelector('.neural-panel');
-
-        if (mode === 'windows') {
-            document.body.classList.add('platform-windows');
-            document.body.classList.remove('platform-android', 'touch-enabled');
-
-            if (cardWin) cardWin.classList.add('active');
-            if (cardAnd) cardAnd.classList.remove('active');
-
-            // Show full desktop Connectome panel
-            if (neuralPanel) {
-                neuralPanel.classList.remove('mobile-hidden', 'mobile-open');
-            }
-
-            // Hide landscape blocker in Windows mode
-            const blocker = document.getElementById('landscapeBlocker');
-            if (blocker) blocker.style.display = 'none';
-            this.isOrientationBlocked = false;
-
-            if (autoLaunch) {
-                soundSystem.init();
-                soundSystem.resume();
-                const overlay = document.getElementById('pauseOverlay');
-                if (overlay) overlay.style.display = 'none';
-                this.isMobileActive = false;
-                try {
-                    const p = document.body.requestPointerLock();
-                    if (p && p.catch) p.catch(() => {});
-                } catch (_) {}
-            }
-        } else {
-            // Android / Phone Mode
-            document.body.classList.add('platform-android', 'touch-enabled');
-            document.body.classList.remove('platform-windows');
-
-            if (cardAnd) cardAnd.classList.add('active');
-            if (cardWin) cardWin.classList.remove('active');
-
-            // Collapse huge Connectome panel on phones by default to free 80% screen!
-            if (neuralPanel) {
-                neuralPanel.classList.add('mobile-hidden');
-                neuralPanel.classList.remove('mobile-open');
-            }
-
-            // Ensure mobile controls are visible and active
-            const controlsLayer = document.getElementById('mobileControlsLayer');
-            if (controlsLayer) controlsLayer.style.display = 'block';
-
-            // Attempt Fullscreen and Landscape Orientation lock on Android devices
-            if (autoLaunch) {
-                try {
-                    if (document.documentElement.requestFullscreen) {
-                        document.documentElement.requestFullscreen().catch(() => {});
-                    }
-                    if (screen.orientation && screen.orientation.lock) {
-                        screen.orientation.lock('landscape').catch(() => {});
-                    }
-                } catch (_) {}
-
-                soundSystem.init();
-                soundSystem.resume();
-                const overlay = document.getElementById('pauseOverlay');
-                if (overlay) overlay.style.display = 'none';
-                this.isMobileActive = true;
-                this.isPointerLocked = true;
-                this.updateMobileWeaponBar();
-                this.checkOrientation();
-            }
-        }
-
-        // Show resume button once mode has been established
-        const resumeBtn = document.getElementById('resumeBtn');
-        if (resumeBtn) {
-            resumeBtn.style.display = 'inline-block';
-            resumeBtn.textContent = `RESUME (${mode === 'windows' ? 'WINDOWS' : 'ANDROID LANDSCAPE'})`;
-        }
-
-        // Pre-highlight recommended mode based on user device
-        const isMobileDevice = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) || (window.innerWidth <= 1024 && navigator.maxTouchPoints > 0);
-        if (badgeWin && badgeAnd) {
-            if (isMobileDevice) {
-                badgeAnd.textContent = '★ RECOMMENDED FOR YOUR PHONE';
-                badgeWin.textContent = 'WINDOWS PC';
-            } else {
-                badgeWin.textContent = '★ RECOMMENDED FOR YOUR PC';
-                badgeAnd.textContent = 'ANDROID PHONES';
-            }
-        }
-    }
-
-    checkOrientation() {
-        if (this.gameMode !== 'android') {
-            const blocker = document.getElementById('landscapeBlocker');
-            if (blocker) blocker.style.display = 'none';
-            this.isOrientationBlocked = false;
-            return;
-        }
-
-        // In Android Mode: Enforce Landscape Mode Only
-        const isPortrait = window.innerHeight > window.innerWidth;
-        const blocker = document.getElementById('landscapeBlocker');
-
-        if (isPortrait) {
-            this.isOrientationBlocked = true;
-            if (blocker) blocker.style.display = 'flex';
-        } else {
-            this.isOrientationBlocked = false;
-            if (blocker) blocker.style.display = 'none';
-
-            // Resize camera aspect ratio and renderer to fit landscape screen
-            if (this.camera && this.renderer) {
-                this.camera.aspect = window.innerWidth / window.innerHeight;
-                this.camera.updateProjectionMatrix();
-                this.renderer.setSize(window.innerWidth, window.innerHeight);
-            }
-        }
+            const p = document.body.requestPointerLock();
+            if (p && p.catch) p.catch(() => {});
+        } catch (e) {}
     }
 }
 
