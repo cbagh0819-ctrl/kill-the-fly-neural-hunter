@@ -62,6 +62,13 @@ class GameEngine {
             isDead: false
         };
 
+        // Platform Play Modes: 'windows' (Desktop PC) or 'android' (Mobile Phone Landscape)
+        const isLikelyMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 1024) || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+        const savedMode = localStorage.getItem('ktf_game_mode');
+        this.gameMode = savedMode || (isLikelyMobile ? 'android' : 'windows');
+        this.isTouchDevice = isLikelyMobile;
+        this.isOrientationBlocked = false;
+
         // Initialize Three.js
         this.initThree();
         this.initEnvironment();
@@ -70,6 +77,8 @@ class GameEngine {
         this.initNeuralHUD();
         this.setupEventListeners();
         this.setupUI();
+        this.setupMobileControls();
+
         // Pre-compile all WebGL shaders up front to eliminate first-frame or mid-game shader stutter
         try {
             this.renderer.compile(this.scene, this.camera);
@@ -77,12 +86,6 @@ class GameEngine {
 
         // Level 1 launch
         this.startLevel(1);
-
-        // Platform Play Modes: 'windows' (Desktop PC) or 'android' (Mobile Phone Landscape)
-        const isLikelyMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 1024) || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
-        const savedMode = localStorage.getItem('ktf_game_mode');
-        this.gameMode = savedMode || (isLikelyMobile ? 'android' : 'windows');
-        this.isOrientationBlocked = false;
 
         // Apply initial mode configuration
         this.setPlatformMode(this.gameMode, false);
@@ -183,7 +186,8 @@ class GameEngine {
                 if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
             }
 
-            if (!this.isPointerLocked) {
+            // NEVER request pointer lock on Android / Phone mode (prevents Chrome mouse capture toast)
+            if (this.gameMode === 'windows' && !this.isPointerLocked) {
                 try {
                     const lockPromise = document.body.requestPointerLock();
                     if (lockPromise && lockPromise.catch) {
@@ -727,7 +731,11 @@ class GameEngine {
         for (let i = 0; i < 5; i++) {
             this.spawnFly();
         }
-        document.body.requestPointerLock();
+        if (this.gameMode === 'windows') {
+            try {
+                document.body.requestPointerLock();
+            } catch (_) {}
+        }
     }
 
     restartGame() {
@@ -1289,11 +1297,13 @@ class GameEngine {
         // Restart from Level 1
         this.startLevel(1);
 
-        // Re-engage pointer lock
-        try {
-            const p = document.body.requestPointerLock();
-            if (p && p.catch) p.catch(() => {});
-        } catch (e) {}
+        // Re-engage pointer lock only on Windows PC
+        if (this.gameMode === 'windows') {
+            try {
+                const p = document.body.requestPointerLock();
+                if (p && p.catch) p.catch(() => {});
+            } catch (e) {}
+        }
     }
 
     setupMobileControls() {
@@ -1312,21 +1322,31 @@ class GameEngine {
         const maxRadius = 45;
 
         if (joyZone && joyBase && joyThumb) {
+            // Ensure joystick base is visibly anchored in bottom left
+            joyBase.style.display = 'block';
+
             const handleJoyStart = (e) => {
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const touch = e.changedTouches[i];
                     if (this.joystickTouchId === null) {
                         this.joystickTouchId = touch.identifier;
-                        const rect = joyZone.getBoundingClientRect();
-                        const touchX = touch.clientX;
-                        const touchY = touch.clientY;
+                        const rect = joyBase.getBoundingClientRect();
+                        this.joystickCenter = { 
+                            x: rect.left + rect.width / 2, 
+                            y: rect.top + rect.height / 2 
+                        };
+                        
+                        const dx = touch.clientX - this.joystickCenter.x;
+                        const dy = touch.clientY - this.joystickCenter.y;
+                        const dist = Math.hypot(dx, dy);
+                        const angle = Math.atan2(dy, dx);
+                        const clampedDist = Math.min(dist, maxRadius);
+                        const thumbX = Math.cos(angle) * clampedDist;
+                        const thumbY = Math.sin(angle) * clampedDist;
+                        joyThumb.style.transform = `translate(calc(-50% + ${thumbX}px), calc(-50% + ${thumbY}px))`;
 
-                        joyBase.style.display = 'block';
-                        joyBase.style.left = `${touchX - rect.left}px`;
-                        joyBase.style.top = `${touchY - rect.top}px`;
-                        this.joystickCenter = { x: touchX, y: touchY };
-                        joyThumb.style.transform = 'translate(-50%, -50%)';
-                        this.touchMoveVector = { x: 0, y: 0 };
+                        this.touchMoveVector.x = thumbX / maxRadius;
+                        this.touchMoveVector.y = thumbY / maxRadius;
                         break;
                     }
                 }
@@ -1359,7 +1379,6 @@ class GameEngine {
                         this.joystickTouchId = null;
                         this.touchMoveVector = { x: 0, y: 0 };
                         joyThumb.style.transform = 'translate(-50%, -50%)';
-                        joyBase.style.display = 'none';
                         break;
                     }
                 }
@@ -1498,6 +1517,7 @@ class GameEngine {
                 const np = document.querySelector('.neural-panel');
                 if (np) {
                     const isHidden = np.classList.toggle('mobile-hidden');
+                    np.classList.toggle('mobile-open', !isHidden);
                     neuralToggleBtn.classList.toggle('active', !isHidden);
                 }
             }, { passive: false });
@@ -1594,6 +1614,7 @@ class GameEngine {
         const cardAnd = document.getElementById('modeCardAndroid');
         const badgeWin = document.getElementById('badgeWindows');
         const badgeAnd = document.getElementById('badgeAndroid');
+        const neuralPanel = document.querySelector('.neural-panel');
 
         if (mode === 'windows') {
             document.body.classList.add('platform-windows');
@@ -1601,6 +1622,11 @@ class GameEngine {
 
             if (cardWin) cardWin.classList.add('active');
             if (cardAnd) cardAnd.classList.remove('active');
+
+            // Show full desktop Connectome panel
+            if (neuralPanel) {
+                neuralPanel.classList.remove('mobile-hidden', 'mobile-open');
+            }
 
             // Hide landscape blocker in Windows mode
             const blocker = document.getElementById('landscapeBlocker');
@@ -1625,6 +1651,16 @@ class GameEngine {
 
             if (cardAnd) cardAnd.classList.add('active');
             if (cardWin) cardWin.classList.remove('active');
+
+            // Collapse huge Connectome panel on phones by default to free 80% screen!
+            if (neuralPanel) {
+                neuralPanel.classList.add('mobile-hidden');
+                neuralPanel.classList.remove('mobile-open');
+            }
+
+            // Ensure mobile controls are visible and active
+            const controlsLayer = document.getElementById('mobileControlsLayer');
+            if (controlsLayer) controlsLayer.style.display = 'block';
 
             // Attempt Fullscreen and Landscape Orientation lock on Android devices
             if (autoLaunch) {
