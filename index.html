@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#07080c">
     <title>KILL THE FLY: Neural Hunter | 3D FPS Game</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪰</text></svg>">
@@ -211,7 +215,7 @@
             </div>
 
             <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                <button class="hud-btn" id="resumeBtn">CLICK TO ENTER FOREST</button>
+                <button class="hud-btn" id="resumeBtn">TAP / CLICK TO ENTER FOREST</button>
                 <a href="website.html" class="hud-btn secondary" style="text-decoration: none; display: inline-flex; align-items: center;">🌐 OFFICIAL WEBSITE</a>
             </div>
         </div>
@@ -265,6 +269,60 @@
                 <button class="hud-btn death-play-btn" id="deathPlayAgainBtn">PLAY AGAIN</button>
                 <button class="hud-btn secondary" id="deathExitBtn">EXIT</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Mobile Touch Controls Layer (Virtual Joystick & Action Buttons) -->
+    <div id="mobileControlsLayer" class="mobile-controls-layer">
+        <!-- Left: Virtual Movement Joystick Zone -->
+        <div id="mobileJoystickZone" class="mobile-joystick-zone">
+            <div id="mobileJoystickBase" class="mobile-joystick-base">
+                <div id="mobileJoystickThumb" class="mobile-joystick-thumb"></div>
+            </div>
+        </div>
+
+        <!-- Right: Touch Look / Swipe Zone -->
+        <div id="mobileLookZone" class="mobile-look-zone"></div>
+
+        <!-- Right: Mobile Touch Action Buttons -->
+        <div id="mobileActionButtons" class="mobile-action-buttons">
+            <div class="m-cluster-top">
+                <button id="mobileSprintBtn" class="mobile-btn sprint" aria-label="Sprint">
+                    <span class="m-icon">⚡</span>
+                    <span class="m-label">RUN</span>
+                </button>
+                <button id="mobileAimBtn" class="mobile-btn aim" aria-label="Scope / Aim">
+                    <span class="m-icon">🎯</span>
+                    <span class="m-label">AIM</span>
+                </button>
+                <button id="mobileReloadBtn" class="mobile-btn reload" aria-label="Reload">
+                    <span class="m-icon">🔄</span>
+                    <span class="m-label">RELOAD</span>
+                </button>
+                <button id="mobileJumpBtn" class="mobile-btn jump" aria-label="Jump">
+                    <span class="m-icon">⬆️</span>
+                    <span class="m-label">JUMP</span>
+                </button>
+            </div>
+            <button id="mobileAttackBtn" class="mobile-btn attack" aria-label="Attack / Fire">
+                <span class="m-attack-ring"></span>
+                <span class="m-icon">💥</span>
+                <span class="m-label">FIRE</span>
+            </button>
+        </div>
+
+        <!-- Bottom: Touch Quick Weapon Strip -->
+        <div id="mobileWeaponBar" class="mobile-weapon-bar">
+            <!-- Dynamically populated weapon chips -->
+        </div>
+
+        <!-- Top Right: Mobile Quick Actions Strip -->
+        <div id="mobileTopStrip" class="mobile-top-strip">
+            <button id="mobilePauseBtn" class="m-top-pill" title="Pause Game">⏸️</button>
+            <button id="mobileNeuralToggleBtn" class="m-top-pill active" title="Toggle Fly Brain HUD">🧠</button>
+            <button id="mobileTorchBtn" class="m-top-pill" title="Toggle Head Torch">🔦</button>
+            <button id="mobileDayNightBtn" class="m-top-pill" title="Toggle Day/Night">☀️</button>
+            <button id="mobileStormBtn" class="m-top-pill" title="Toggle Storm">⛈️</button>
         </div>
     </div>
 

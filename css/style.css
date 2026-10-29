@@ -1069,3 +1069,536 @@ html, body {
     border-color: rgba(255, 204, 0, 0.4);
     box-shadow: none;
 }
+
+
+/* ==========================================================================
+   MOBILE PHONE OPTIMIZATIONS & VIRTUAL TOUCH CONTROLLER
+   ========================================================================== */
+
+/* Prevent default touch behaviors and zoom gestures on game surface */
+html, body {
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    width: 100%;
+    height: 100%;
+}
+
+#gameContainer {
+    touch-action: none;
+}
+
+/* Mobile Controls Layer: Hidden on Desktop, active on Touch devices */
+.mobile-controls-layer {
+    display: none;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+body.touch-enabled .mobile-controls-layer {
+    display: block;
+}
+
+/* Left Virtual Movement Joystick Zone */
+.mobile-joystick-zone {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 46vw;
+    height: 52vh;
+    pointer-events: auto;
+    touch-action: none;
+    z-index: 101;
+}
+
+.mobile-joystick-base {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 255, 204, 0.15) 0%, rgba(10, 24, 20, 0.6) 70%);
+    border: 2px solid rgba(0, 255, 204, 0.5);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.3), inset 0 0 15px rgba(0, 255, 204, 0.2);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: none;
+}
+
+.mobile-joystick-thumb {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #00ffcc 0%, #008877 80%);
+    box-shadow: 0 0 16px #00ffcc, inset 0 2px 4px rgba(255, 255, 255, 0.8);
+    border: 2px solid #ffffff;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    transition: transform 0.05s ease-out;
+}
+
+/* Right Touch Look Zone */
+.mobile-look-zone {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 54vw;
+    height: 100vh;
+    pointer-events: auto;
+    touch-action: none;
+    z-index: 95;
+}
+
+/* Mobile Action Buttons (Right Thumb Cluster) */
+.mobile-action-buttons {
+    position: absolute;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    right: max(14px, env(safe-area-inset-right));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    pointer-events: auto;
+    z-index: 105;
+}
+
+.m-cluster-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mobile-btn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(14, 20, 28, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #ffffff;
+    font-family: 'Orbitron', monospace;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.mobile-btn:active {
+    transform: scale(0.92);
+}
+
+.mobile-btn .m-icon {
+    font-size: 17px;
+    line-height: 1;
+}
+
+.mobile-btn .m-label {
+    font-size: 7.5px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+/* Primary Attack / Fire Button (Big & Prominent) */
+.mobile-btn.attack {
+    width: 76px;
+    height: 76px;
+    border-color: #ff3344;
+    background: radial-gradient(circle, rgba(255, 51, 68, 0.4) 0%, rgba(24, 10, 16, 0.9) 80%);
+    box-shadow: 0 0 25px rgba(255, 51, 68, 0.55), inset 0 0 15px rgba(255, 51, 68, 0.3);
+}
+
+.mobile-btn.attack:active {
+    background: radial-gradient(circle, rgba(255, 51, 68, 0.65) 0%, rgba(45, 10, 16, 0.95) 80%);
+    box-shadow: 0 0 35px #ff3344;
+}
+
+.mobile-btn.attack .m-icon {
+    font-size: 26px;
+}
+
+.mobile-btn.attack .m-label {
+    font-size: 10px;
+    color: #ff99aa;
+    font-weight: 900;
+}
+
+/* Auxiliary Buttons */
+.mobile-btn.jump,
+.mobile-btn.aim,
+.mobile-btn.reload,
+.mobile-btn.sprint {
+    width: 48px;
+    height: 48px;
+}
+
+.mobile-btn.jump {
+    border-color: rgba(0, 255, 204, 0.6);
+}
+
+.mobile-btn.aim.active {
+    border-color: #ffcc00;
+    background: rgba(255, 204, 0, 0.28);
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+}
+
+.mobile-btn.sprint.active {
+    border-color: #00ff88;
+    background: rgba(0, 255, 136, 0.28);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+}
+
+/* Mobile Quick Weapon Strip */
+.mobile-weapon-bar {
+    position: absolute;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(9, 14, 20, 0.88);
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    border-radius: 999px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    pointer-events: auto;
+    overflow-x: auto;
+    max-width: calc(100vw - 150px);
+    scrollbar-width: none;
+    z-index: 102;
+}
+
+.mobile-weapon-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.m-weap-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 40px;
+    padding: 2px 5px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.15s ease;
+}
+
+.m-weap-btn.active {
+    background: rgba(0, 255, 204, 0.25);
+    border-color: #00ffcc;
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.45);
+}
+
+.m-weap-btn.locked {
+    opacity: 0.35;
+    filter: grayscale(1);
+    pointer-events: none;
+}
+
+.m-weap-num {
+    font-size: 7.5px;
+    font-weight: 800;
+    color: #77bba5;
+    font-family: 'Orbitron', monospace;
+}
+
+.m-weap-icon {
+    font-size: 14px;
+    line-height: 1.1;
+}
+
+.m-weap-name {
+    display: none;
+}
+
+/* Mobile Top Action Strip */
+.mobile-top-strip {
+    position: absolute;
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: auto;
+    z-index: 103;
+}
+
+.m-top-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 34px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(9, 14, 20, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.m-top-pill.active {
+    border-color: #00ffcc;
+    color: #00ffcc;
+    background: rgba(0, 255, 204, 0.18);
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+}
+
+/* ==========================================================================
+   RESPONSIVE HUD & MODAL MEDIA QUERIES
+   ========================================================================== */
+
+@media (max-width: 900px) {
+    .mobile-controls-layer {
+        display: block;
+    }
+
+    /* Hide desktop controls hint on touch screens */
+    .controls-hint {
+        display: none !important;
+    }
+
+    /* Hide redundant desktop quick controls in mission panel */
+    .mission-panel .quick-controls {
+        display: none !important;
+    }
+
+    /* Top HUD scaling & safe area spacing */
+    #hudContainer {
+        padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    }
+
+    .hud-top {
+        align-items: flex-start;
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+
+    .mission-panel {
+        min-width: auto;
+        max-width: 200px;
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    .panel-title {
+        font-size: 9.5px;
+        margin-bottom: 3px;
+    }
+
+    .mission-goal {
+        font-size: 15px;
+    }
+
+    .mission-goal .label {
+        font-size: 7.5px;
+    }
+
+    /* Drosophila Connectome Panel Collapsible */
+    .neural-panel {
+        width: 210px;
+        padding: 8px 10px;
+        transform-origin: top right;
+        transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .neural-panel.mobile-hidden {
+        display: none !important;
+    }
+
+    #neuralCanvas {
+        width: 190px !important;
+        height: 120px !important;
+    }
+
+    .osc-container {
+        display: none !important;
+    }
+
+    .telemetry-grid {
+        display: none !important;
+    }
+
+    /* Bottom HUD adjustment */
+    .hud-bottom {
+        bottom: 65px;
+        padding: 0;
+        pointer-events: none;
+    }
+
+    .health-panel {
+        padding: 6px 10px;
+        min-width: 130px;
+    }
+
+    .health-title {
+        font-size: 9.5px;
+    }
+
+    .health-value {
+        font-size: 10px;
+    }
+
+    .weapon-panel {
+        padding: 6px 10px;
+        min-width: 130px;
+    }
+
+    .weapon-title {
+        font-size: 10px;
+    }
+
+    .weapon-ammo {
+        font-size: 12px;
+    }
+
+    .reload-prompt {
+        font-size: 8.5px;
+    }
+
+    /* Magic Spells Hotbar */
+    .magic-hotbar {
+        bottom: 115px;
+        padding: 6px 10px;
+        max-width: 95vw;
+        border-radius: 14px;
+        transform: translateX(-50%) scale(0.92);
+    }
+
+    .magic-slot {
+        width: 44px;
+        height: 52px;
+    }
+
+    .magic-icon {
+        font-size: 18px;
+    }
+
+    .magic-name {
+        font-size: 7px;
+    }
+
+    /* Sniper Scope Overlay */
+    .scope-lens {
+        width: min(85vw, 85vh);
+        height: min(85vw, 85vh);
+    }
+
+    /* Modal Overlays for Mobile */
+    .modal-card, .death-modal {
+        max-width: 94vw;
+        max-height: 88vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 24px 16px;
+        border-radius: 16px;
+    }
+
+    .modal-title, .death-title {
+        font-size: clamp(22px, 6.5vw, 34px);
+    }
+
+    .modal-subtitle, .death-subtitle {
+        font-size: 11px;
+    }
+
+    .science-explainer {
+        font-size: 10.5px;
+        line-height: 1.45;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    .controls-table {
+        grid-template-columns: 1fr;
+        gap: 5px;
+        font-size: 10.5px;
+        max-height: 140px;
+        overflow-y: auto;
+    }
+
+    .hud-btn {
+        min-height: 46px;
+        padding: 12px 20px;
+        font-size: 13px;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 600px) {
+    .mission-panel {
+        max-width: 160px;
+        padding: 6px 8px;
+    }
+
+    .neural-panel {
+        width: 175px;
+        padding: 6px 8px;
+    }
+
+    #neuralCanvas {
+        width: 155px !important;
+        height: 100px !important;
+    }
+
+    .mobile-weapon-bar {
+        max-width: calc(100vw - 120px);
+        padding: 4px 8px;
+    }
+
+    .m-weap-btn {
+        min-width: 34px;
+        height: 36px;
+    }
+
+    .m-weap-icon {
+        font-size: 12px;
+    }
+
+    .mobile-btn.attack {
+        width: 68px;
+        height: 68px;
+    }
+
+    .mobile-btn.jump,
+    .mobile-btn.aim,
+    .mobile-btn.reload,
+    .mobile-btn.sprint {
+        width: 42px;
+        height: 42px;
+    }
+
+    .mobile-btn .m-icon {
+        font-size: 15px;
+    }
+}
