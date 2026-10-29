@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KILL THE FLY: Neural Hunter | Official Game Website</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪰</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #070d0a;
+            --bg-card: rgba(12, 26, 20, 0.88);
+            --neon: #00ffcc;
+            --neon-green: #00ff88;
+            --crimson: #ff2244;
+            --gold: #ffbb33;
+            --text-main: #e6f7f0;
+            --text-muted: #8ab3a2;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(circle at 20% 15%, rgba(0, 255, 204, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 80% 75%, rgba(255, 34, 68, 0.07) 0%, transparent 45%);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(7, 13, 10, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 255, 204, 0.25);
+            padding: 16px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 20px;
+            color: var(--neon);
+            letter-spacing: 2px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 1px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--neon); }
+        .btn-play {
+            background: linear-gradient(135deg, #00ffcc 0%, #009977 100%);
+            color: #05100a !important;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            letter-spacing: 1.5px;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+        }
+        .btn-play:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 0 32px rgba(0, 255, 204, 0.75);
+        }
+        .hero {
+            padding: 80px 5% 60px;
+            text-align: center;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .badge {
+            display: inline-block;
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.12);
+            border: 1px solid var(--neon-green);
+            padding: 5px 16px;
+            border-radius: 20px;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+        .hero h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(36px, 6vw, 64px);
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(0, 255, 204, 0.45);
+            margin-bottom: 14px;
+        }
+        .hero h1 span { color: var(--neon); }
+        .hero p {
+            font-size: 20px;
+            color: var(--text-muted);
+            max-width: 780px;
+            margin: 0 auto 36px;
+        }
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .btn-large { font-size: 18px; padding: 16px 42px; }
+        .btn-outline {
+            border: 2px solid var(--neon);
+            color: var(--neon);
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            padding: 15px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            letter-spacing: 1.5px;
+            transition: background 0.2s;
+        }
+        .btn-outline:hover { background: rgba(0, 255, 204, 0.15); }
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 1100px;
+            margin: 20px auto 60px;
+            padding: 0 5%;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 204, 0.28);
+            border-radius: 12px;
+            padding: 22px;
+            text-align: center;
+        }
+        .stat-num {
+            font-family: 'Orbitron', monospace;
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--neon);
+        }
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+        section {
+            max-width: 1150px;
+            margin: 0 auto 80px;
+            padding: 0 5%;
+        }
+        .section-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            color: var(--neon);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .section-sub {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 17px;
+            margin-bottom: 40px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 204, 0.22);
+            border-top: 3px solid var(--neon);
+            border-radius: 12px;
+            padding: 26px;
+        }
+        .feature-card h3 {
+            font-family: 'Orbitron', monospace;
+            font-size: 17px;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .feature-card p { color: var(--text-muted); font-size: 15.5px; }
+        .table-wrap {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 204, 0.28);
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td {
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        th {
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            color: var(--neon);
+            letter-spacing: 1.5px;
+            background: rgba(0, 255, 204, 0.08);
+        }
+        tr:hover { background: rgba(0, 255, 204, 0.04); }
+        .spells-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+        }
+        .spell-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 187, 51, 0.35);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .spell-icon { font-size: 34px; margin-bottom: 8px; }
+        .spell-key {
+            display: inline-block;
+            font-family: 'Orbitron', monospace;
+            font-size: 11px;
+            font-weight: 900;
+            background: var(--gold);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        .spell-card h4 {
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        footer {
+            border-top: 1px solid rgba(0, 255, 204, 0.2);
+            padding: 32px 5%;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="brand">🪰 KILL THE FLY: NEURAL HUNTER</a>
+        <div class="nav-links">
+            <a href="#connectome">Fly Brain AI</a>
+            <a href="#arsenal">8-Tier Arsenal</a>
+            <a href="#magic">Elemental Magic</a>
+            <a href="index.html" class="btn-play">▶ LAUNCH GAME</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="badge">⚡ 60 FPS WEBGL ENGINE &bull; BIOPHYSICAL CONNECTOME SIMULATION</div>
+        <h1>HUNT THE <span>NEURAL SWARM</span></h1>
+        <p>A 3D First-Person Shooter powered by Three.js and a real-time Leaky Integrate-and-Fire model of the <em>Drosophila melanogaster</em> Giant Fiber escape connectome.</p>
+        <div class="hero-actions">
+            <a href="index.html" class="btn-play btn-large">🎮 PLAY IN BROWSER NOW</a>
+            <a href="#connectome" class="btn-outline">EXPLORE THE SCIENCE</a>
+        </div>
+    </header>
+
+    <div class="stats-strip">
+        <div class="stat-card">
+            <div class="stat-num">8 LEVELS</div>
+            <div class="stat-label">Progressive Campaign + Endless</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">-48 mV</div>
+            <div class="stat-label">Giant Fiber Spike Threshold</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">5 SPELLS</div>
+            <div class="stat-label">Elemental Magic vs Red Swarm</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">60+ FPS</div>
+            <div class="stat-label">Batched WebGL Geometry</div>
+        </div>
+    </div>
+
+    <section id="connectome">
+        <h2 class="section-title">BIOLOGICAL DROSOPHILA BRAIN CIRCUIT</h2>
+        <p class="section-sub">Every fly runs an independent neural circuit rather than random dodge timers</p>
+        <div class="grid-3">
+            <div class="feature-card">
+                <h3>1. LC4 &amp; LPLC2 Looming Detectors</h3>
+                <p>Compound eyes covering ~330&deg; compute real-time retinal angular size (&theta;) and expansion rate (d&theta;/dt) of approaching weapons or projectiles, leaving a realistic posterior blind spot.</p>
+            </div>
+            <div class="feature-card">
+                <h3>2. Giant Fiber (GF) Action Potential</h3>
+                <p>Synaptic current integrates across a Leaky Integrate-and-Fire membrane model from -70mV resting potential. Crossing threshold fires an explosive +30mV spike visible on the live HUD oscilloscope.</p>
+            </div>
+            <div class="feature-card">
+                <h3>3. TTM Jump &amp; DLM Wing Overdrive</h3>
+                <p>Within 10ms of a Giant Fiber spike, Tergotrochanteral (TTM) leg motors launch the fly laterally while Dorsal Longitudinal Muscles (DLM) boost wing beat frequency from 185 Hz to 240 Hz.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="arsenal">
+        <h2 class="section-title">8-LEVEL CAMPAIGN &amp; ARSENAL</h2>
+        <p class="section-sub">Unlock new hardware each level as the swarm evolves faster reflexes and higher rage</p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>LEVEL</th>
+                        <th>LOCATION</th>
+                        <th>WEAPON</th>
+                        <th>CLASS</th>
+                        <th>FLY SPEED</th>
+                        <th>GF THRESHOLD</th>
+                        <th>GOAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Level 1</strong></td><td>Woodland Canopy</td><td><strong>Badminton Racket</strong></td><td>Melee Swat</td><td>7.5 m/s</td><td>-46 mV</td><td>3 Flies</td></tr>
+                    <tr><td><strong>Level 2</strong></td><td>Pine Thicket</td><td><strong>Tactical Handgun</strong></td><td>Semi-Auto Pistol</td><td>9.0 m/s</td><td>-49 mV</td><td>5 Flies</td></tr>
+                    <tr><td><strong>Level 3</strong></td><td>Bramble Hollow</td><td><strong>MAC-10 SMG</strong></td><td>800 RPM Automatic</td><td>10.5 m/s</td><td>-52 mV</td><td>7 Flies</td></tr>
+                    <tr><td><strong>Level 4</strong></td><td>Mist Valley</td><td><strong>Pump Action Shotgun</strong></td><td>8-Pellet Buckshot</td><td>12.0 m/s</td><td>-55 mV</td><td>8 Flies</td></tr>
+                    <tr><td><strong>Level 5</strong></td><td>Deep Forest</td><td><strong>AK-47 Assault Rifle</strong></td><td>7.62mm Auto Rifle</td><td>13.5 m/s</td><td>-58 mV</td><td>10 Flies</td></tr>
+                    <tr><td><strong>Level 6</strong></td><td>Old Lumber Mill</td><td><strong>Heavy Squad LMG</strong></td><td>75-Round Belt Box</td><td>15.0 m/s</td><td>-61 mV</td><td>12 Flies</td></tr>
+                    <tr><td><strong>Level 7</strong></td><td>Eagle's Ridge</td><td><strong>Tactical Sniper Rifle</strong></td><td>4x Optic Scope ADS</td><td>16.5 m/s</td><td>-64 mV</td><td>10 Flies</td></tr>
+                    <tr><td><strong>Level 8</strong></td><td>The Hive Core</td><td><strong>RPG-7 Rocket Launcher</strong></td><td>12m Explosive AOE</td><td>18.5 m/s</td><td>-67 mV</td><td>15 Flies</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="magic">
+        <h2 class="section-title">ELEMENTAL MAGIC HOTBAR (LEVEL 2+)</h2>
+        <p class="section-sub">Target and obliterate aggressive Red Angry Drosophila swarms with five elemental powers</p>
+        <div class="spells-grid">
+            <div class="spell-card">
+                <div class="spell-icon">⚡</div>
+                <div class="spell-key">KEY Z</div>
+                <h4>SUMMON LIGHTNING</h4>
+                <p style="color: var(--text-muted); font-size: 14px;">Calls down a high-voltage sky bolt that vaporizes red angry flies in an 11m radius.</p>
+            </div>
+            <div class="spell-card">
+                <div class="spell-icon">🔥</div>
+                <div class="spell-key">KEY X</div>
+                <h4>FIREBALL THROW</h4>
+                <p style="color: var(--text-muted); font-size: 14px;">Hurls a blazing projectile that detonates on impact in a 9m incendiary blast.</p>
+            </div>
+            <div class="spell-card">
+                <div class="spell-icon">💨</div>
+                <div class="spell-key">KEY C</div>
+                <h4>SMOKE CONFUSE</h4>
+                <p style="color: var(--text-muted); font-size: 14px;">Billows mystic purple smoke that aborts dive attacks and suffocates red swarms.</p>
+            </div>
+            <div class="spell-card">
+                <div class="spell-icon">🔊</div>
+                <div class="spell-key">KEY V</div>
+                <h4>ECHO ATTACK</h4>
+                <p style="color: var(--text-muted); font-size: 14px;">Projects ultrasonic resonance rings that shatter angry flies in a 22m forward cone.</p>
+            </div>
+            <div class="spell-card">
+                <div class="spell-icon">🪨</div>
+                <div class="spell-key">KEY B</div>
+                <h4>EARTH CRUST</h4>
+                <p style="color: var(--text-muted); font-size: 14px;">Erupts jagged granite stalagmite spikes from the forest floor to crush red flies.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p><strong>KILL THE FLY: Neural Hunter</strong> &bull; Powered by Three.js &amp; Web Audio API &bull; Hosted on GitHub Pages</p>
+    </footer>
+</body>
+</html>
